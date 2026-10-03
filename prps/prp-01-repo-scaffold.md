@@ -2,7 +2,7 @@
 
 **Created**: 2026-10-02
 **Initial**: `initials/init-01-repo-scaffold.md`
-**Status**: Ready
+**Status**: Complete
 **ADRs**: ADR-002 (disclaimer), ADR-025 (AWS profile), ADR-029 (naming); adds ADR-031 (Python tooling)
 
 ---
