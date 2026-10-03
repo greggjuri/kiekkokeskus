@@ -50,6 +50,8 @@ cd infra && npm ci && cd ..
 # Test
 pytest                                   # all
 pytest --cov=kiekkokeskus --cov-report=term-missing
+ruff check .                             # lint
+ruff format --check .                    # formatting (use `ruff format .` to fix)
 cd infra && npm test                     # CDK assertions (we own nothing we shouldn't)
 node --test site/kiekkokeskus/           # page logic, Node built-in runner
 python scripts/smoke.py                  # after every deploy (TESTING.md layer 6)

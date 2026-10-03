@@ -6,14 +6,18 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 1, Foundation
 
 ### In Progress
-- [ ] `init-01-repo-scaffold` - executing PRP-01
+*(none)*
 
 ### Up Next
-*(none in Phase 1 until init-01 completes)*
+- [ ] `init-02-infra` - CDK stack, scoped Lambda role, schedule, log retention, error alarm;
+      lifecycle script; first deploy
 
 ---
 
 ## Recently Completed
+
+### init-01-repo-scaffold (2026-10-03)
+- [x] Scaffold green locally and in CI; ADR-031 added (PRP-01)
 
 ### Setup (2026-10-02)
 - [x] Created `greggjuri/kiekkokeskus` repo and pushed planning docs (f427ea0 → a799225)
@@ -93,7 +97,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-02 (init-01 in progress)*
+*Last updated: 2026-10-03 (init-01 complete)*
 
 ---
 

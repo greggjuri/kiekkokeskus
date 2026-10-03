@@ -405,6 +405,33 @@ fields need a collector change and a `schemaVersion` bump.
 
 ---
 
+## ADR-031: Python tooling is hatchling + ruff + pytest, pinned to 3.13
+
+**Date**: 2026-10-02
+**Status**: Accepted
+
+### Decision
+- **Build**: hatchling, `src/` layout, editable installs.
+- **Lint + format**: ruff, one tool for both. Rules `E`, `F`, `W`, `I`, `UP`, `B`, `SIM`;
+  `line-length = 100`; `target-version = "py313"`. `extend-exclude = ["*.md"]` so ruff 0.16's
+  default behavior of reformatting Python inside markdown doesn't rewrite the illustrative
+  snippets in CLAUDE.md and `prps/template/prp-template.md`.
+- **Tests**: pytest + pytest-cov, with `fail_under = 80` on `src/kiekkokeskus/`.
+- **Pin**: `.python-version` holds `3.13`, matching the Lambda runtime.
+- **CI**: GitHub Actions runs `ruff check`, `ruff format --check`, and `pytest`. Workflow top
+  declares `permissions: contents: read`; it never holds AWS credentials.
+
+### Alternatives Considered
+| Option | Pros | Cons | Verdict |
+|---|---|---|---|
+| setuptools | ubiquitous | heavier config for no gain in a tiny stdlib package | Rejected |
+| black + flake8 + isort | mature, familiar | three tools where ruff does the job | Rejected |
+
+### References
+initials/init-01-repo-scaffold.md, prps/prp-01-repo-scaffold.md
+
+---
+
 ## Template for New Decisions
 
 ```markdown
