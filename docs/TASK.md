@@ -3,18 +3,20 @@
 **Spec numbers:** `01`–`09` are reserved by the backlog below. **The next free number for a new,
 unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029).
 
-## Current: Phase 0, Setup
+## Current: Phase 1, Foundation
 
 ### In Progress
-- [ ] Create `greggjuri/kiekkokeskus` repo and commit the planning docs (owner: Juri)
+- [ ] `init-01-repo-scaffold` - executing PRP-01
 
 ### Up Next
-- [ ] `init-01-repo-scaffold` - structure, pyproject, venv, pytest, GitHub Actions, README with
-      disclaimer
+*(none in Phase 1 until init-01 completes)*
 
 ---
 
 ## Recently Completed
+
+### Setup (2026-10-02)
+- [x] Created `greggjuri/kiekkokeskus` repo and pushed planning docs (f427ea0 → a799225)
 
 ### Planning (Claude.ai, 2026-10-02)
 - [x] Real payloads fetched and NHL gotchas recorded (ADR-008–018)
@@ -33,7 +35,6 @@ Spec numbers below are reserved in this order. A spec inserted later takes the n
 whichever phase it belongs to.
 
 ### Phase 1 - Foundation
-- [ ] `init-01-repo-scaffold` - repo layout, tooling, CI, README + disclaimer
 - [ ] `init-02-infra` - CDK stack: Lambda stub, scoped role, schedule, log retention, error alarm;
       lifecycle script; first deploy
 - [ ] `init-03-collector-core` - season resolution, fetch + retry, raw archive, dated URLs, first
@@ -92,7 +93,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-02 (initial setup from planning chat)*
+*Last updated: 2026-10-02 (init-01 in progress)*
 
 ---
 
