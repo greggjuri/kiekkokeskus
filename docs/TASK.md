@@ -6,11 +6,10 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 1, Foundation
 
 ### In Progress
-*(none)*
+- [ ] `init-02-infra` - executing PRP-02 (Steps 0–7 today; Steps 8–9 after first scheduled run 2026-10-04)
 
 ### Up Next
-- [ ] `init-02-infra` - CDK stack, scoped Lambda role, schedule, log retention, error alarm;
-      lifecycle script; first deploy
+*(none in Phase 1 until init-02 completes)*
 
 ---
 
@@ -97,7 +96,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-03 (init-01 complete)*
+*Last updated: 2026-10-03 (init-02 in progress)*
 
 ---
 
