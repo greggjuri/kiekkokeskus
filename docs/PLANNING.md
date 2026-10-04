@@ -99,7 +99,9 @@ This is the project's only "API". Pages read these paths and nothing else.
 | `/data/kiekkokeskus/leijonat.json` | Lambda | `max-age=300` | current /leijonat state |
 | `/data/kiekkokeskus/history/YYYY-MM-DD/{bolts,leijonat}.json` | Lambda | long, immutable | trend charts |
 | `/data/kiekkokeskus/history/index.json` | Lambda | `max-age=300` | list of available dates |
-| `/data/kiekkokeskus/raw/YYYY-MM-DD/*.json.gz` | Lambda | n/a | re-parse source, not read by pages |
+| `/data/kiekkokeskus/raw/YYYY-MM-DD/*.json.gz` | Lambda | `max-age=31536000, immutable` | re-parse source, not read by pages |
+| `/data/kiekkokeskus/raw/YYYY-MM-DD/_manifest.json` | Lambda | `max-age=300` | per-run metadata; written on success **and** failure |
+| `/data/kiekkokeskus/_health.json` | Lambda | `max-age=300` | **ops only** — no `dataDate`/`season` as a data contract; pages don't read it (ADR-032) |
 
 Every output file has this envelope:
 

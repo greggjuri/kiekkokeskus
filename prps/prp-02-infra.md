@@ -2,7 +2,7 @@
 
 **Created**: 2026-10-03
 **Initial**: `initials/init-02-infra.md`
-**Status**: Ready
+**Status**: Complete
 **ADRs**: ADR-003, 005, 006, 020, 021, 022, 023, 024, 025, 026, 027, 031; adds ADR-032 (ops baseline)
 
 ---

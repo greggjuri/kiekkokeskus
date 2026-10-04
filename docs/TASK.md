@@ -6,15 +6,19 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 1, Foundation
 
 ### In Progress
-- [ ] `init-02-infra` - PRP-02 Steps 0–7 done; Steps 8–9 after first scheduled run 2026-10-04
-- [ ] `init-03-collector-core` - executing PRP-03 (deploys tonight, so tomorrow's 10:00 ET run is the real collector)
+- [ ] `init-03-collector-core` - PRP-03 Steps 0–7 done; Step 8 docs tidy next
 
 ### Up Next
-*(none in Phase 1 until init-02 + init-03 complete)*
+- [ ] `init-04-bolts-json` — standings + gaps, last/next games, full skater/goalie rows, special teams
 
 ---
 
 ## Recently Completed
+
+### init-02-infra (2026-10-04)
+- [x] CDK stack deployed; health file served through CloudFront with correct Cache-Control;
+      missed-run alarm live; forced error produced an SNS email; ADR-032 added, ADR-022 Verified
+      note added (legacy TTL config, MinTTL=0) (PRP-02)
 
 ### init-01-repo-scaffold (2026-10-03)
 - [x] Scaffold green locally and in CI; ADR-031 added (PRP-01)
@@ -102,7 +106,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-04 (init-02 awaiting first scheduled run; init-03 in progress)*
+*Last updated: 2026-10-04 (init-02 complete; init-03 Steps 0–7 done, docs tidy next)*
 
 ---
 

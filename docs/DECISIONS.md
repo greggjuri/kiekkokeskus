@@ -169,13 +169,9 @@ is as of that date, not the final state. `standings/2026-10-01` has TBL at 1 GP,
 that date's games.
 
 ### Re-verified 2026-10-03 (raw diff)
-Captured fixtures `standings-2026-04-01__2026-10-03.json.gz`,
-`standings-2026-10-01__2026-10-03.json.gz`, `standings-2026-10-02__2026-10-03.json.gz`. Observed:
-- 2026-04-01 → `seasonId=20252026`, TBL 74 GP, 98 pts (46-22-6)
-- 2026-10-01 → `seasonId=20262027`, TBL 1 GP (0-1-0)
-- 2026-10-02 → `seasonId=20262027`, TBL 1 GP (unchanged — TBL idle that date; `leagueSequence` reorders because other teams played)
-
-Matches the summarizing fetch exactly; caveat removed.
+Captured fixtures `standings-{2026-04-01,2026-10-01,2026-10-02}__2026-10-03.json.gz` match the
+summarizing fetch: 2026-04-01 → `20252026`, TBL 74 GP, 98 pts (46-22-6); 2026-10-01/02 →
+`20262027`, TBL 1 GP. Caveat removed.
 
 ### Consequences
 **Positive:** rank and points-pace history, including the cut line, can be rebuilt for any date or
@@ -246,6 +242,11 @@ The Lambda writes `{bolts,leijonat}.json` and `history/index.json` with
 |--------|------|------|---------|
 | Invalidate after each run | Works with any TTL | Extra API call, extra IAM | Rejected |
 | Per-object Cache-Control | No extra calls | None | Selected |
+
+### Verified 2026-10-03
+Distribution `E1ZSW9COVAPN92` uses the **legacy TTL config** (no `CachePolicyId`): `MinTTL=0`,
+`DefaultTTL=3600`, `MaxTTL=86400`. Origin `max-age=300` wins; live `_health.json` through
+CloudFront advertises `cache-control: public, max-age=300`.
 
 ---
 
@@ -439,28 +440,48 @@ initials/init-01-repo-scaffold.md, prps/prp-01-repo-scaffold.md
 
 ---
 
+## ADR-032: Operational baseline — health file, alarms, no async retries, deploy gate
+
+**Date**: 2026-10-03
+**Status**: Accepted
+
+### Decision
+- **`_health.json` is ops-only** (ADR-002 posture). Carries `schemaVersion`, `generatedAt`,
+  `status`, `version`, `trigger`, `dataDate`, `rawCount`. Not read by pages; written on success
+  only.
+- **Alarms** (CW → SNS `kiekkokeskus-alerts` → greggjuri@gmail.com):
+  `kiekkokeskus-collector-errors` (`Errors Sum ≥ 1` / 5 min, missing = not-breaching) +
+  `kiekkokeskus-collector-missed` (`Invocations Sum < 1` / 24 h, missing = breaching — catches a
+  schedule that stops firing silently).
+- **Lambda async retries = 0** (`CfnEventInvokeConfig MaximumRetryAttempts: 0`). The collector
+  owns HTTP retries; Lambda's default would triple failing runs and alarm emails.
+- **Scheduler Target `Input='{"source":"scheduled"}'`.** Handler reads
+  `event.get("source") == "scheduled"` → `trigger="schedule"`. Live-captured in
+  `tests/fixtures/scheduler-event__2026-10-04.json`: AWS passes Input verbatim, no envelope.
+- **Deploy gate**: `scripts/deploy.py` runs `cdk diff` and exits by default; `--approved` runs
+  `cdk deploy --require-approval never`. Gate lives in the human workflow, not CDK's TTY prompt
+  (which doesn't survive subprocess invocation).
+
+### Verified live (2026-10-04)
+Forced-error invoke raised `RuntimeError`; errors alarm OK → ALARM within 2 min; SNS email
+delivered; alarm returned to OK after one period.
+
+### References
+initials/init-02-infra.md, prps/prp-02-infra.md
+
+---
+
 ## Template for New Decisions
 
 ```markdown
 ## ADR-XXX: Title
-
-**Date**: YYYY-MM-DD
-**Status**: Proposed/Accepted/Deprecated/Superseded
-
-### Context
-### Decision
-### Rationale
-### Alternatives Considered (optional)
-### Consequences
-### References (optional): initials/init-nn-*.md, prps/prp-nn-*.md
+**Date**: YYYY-MM-DD · **Status**: Proposed/Accepted/Deprecated/Superseded
+### Context / Decision / Rationale / Alternatives (optional) / Consequences / References
 ```
 
-Status values are **Proposed** (under discussion), **Accepted** (in effect), **Deprecated** (no
-longer recommended), and **Superseded** (replaced; link the replacement). Numbers are never reused.
-
-Create an ADR when choosing between valid approaches, making a hard-to-reverse call, setting a
-pattern, rejecting an approach, or learning something about the NHL payloads that later code must
-respect.
+Status values: **Proposed**, **Accepted**, **Deprecated**, **Superseded** (link the replacement).
+Numbers never reused. Create an ADR when choosing between valid approaches, making a hard-to-reverse
+call, setting a pattern, or learning a payload fact that later code must respect.
 
 ## Key Principles
 

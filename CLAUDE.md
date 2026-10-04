@@ -29,6 +29,13 @@ ADRs are binding. If a task seems to need contradicting one, stop and say so. Do
 Development happens on the MacBook ("Claudebook", macOS, Apple Silicon), not the Debian box.
 
 - **Python 3.13 in `.venv`**, always. It's pinned to the Lambda runtime. Never use system Python.
+  If `python3.13` isn't on `PATH` (Homebrew keg-only), create the venv with
+  `/opt/homebrew/opt/python@3.13/bin/python3.13 -m venv .venv`.
+- **Call venv binaries directly, don't `source .venv/bin/activate`.** Use `.venv/bin/python`,
+  `.venv/bin/pytest`, `.venv/bin/ruff`, `.venv/bin/pip`. Keeps each command self-contained and
+  survives subprocess invocation.
+- **CI status via `gh run watch` / `gh run list`**, not curl polling (install with `brew install gh`;
+  the public GitHub Actions API also works unauthenticated).
 - **BSD userland.** No `sed -i ''`/`sed -i` portability games and no `date -d`. Anything beyond a
   one-liner is a Python script in `scripts/`.
 - **Case-insensitive filesystem.** Keep filename casing exact and consistent, because CI on Linux is
@@ -44,30 +51,36 @@ Development happens on the MacBook ("Claudebook", macOS, Apple Silicon), not the
 
 ```bash
 # Setup (once)
-python3.13 -m venv .venv && source .venv/bin/activate && pip install -e '.[dev]'
-cd infra && npm ci && cd ..
+/opt/homebrew/opt/python@3.13/bin/python3.13 -m venv .venv   # or `python3.13` if on PATH
+.venv/bin/pip install -e '.[dev]'
+cd infra && PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm ci && cd ..
 
 # Test
-pytest                                   # all
-pytest --cov=kiekkokeskus --cov-report=term-missing
-ruff check .                             # lint
-ruff format --check .                    # formatting (use `ruff format .` to fix)
-cd infra && npm test                     # CDK assertions (we own nothing we shouldn't)
-node --test site/kiekkokeskus/           # page logic, Node built-in runner
-python scripts/smoke.py                  # after every deploy (TESTING.md layer 6)
+.venv/bin/pytest                                   # all
+.venv/bin/pytest --cov=kiekkokeskus --cov-report=term-missing
+.venv/bin/ruff check .                             # lint
+.venv/bin/ruff format --check .                    # formatting (use `ruff format .` to fix)
+cd infra && PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm test   # CDK assertions
+node --test site/kiekkokeskus/                     # page logic, Node built-in runner
+.venv/bin/python scripts/smoke.py                  # after every deploy (TESTING.md layer 6)
+
+# Lifecycle (ADR-023, ADR-027)
+.venv/bin/python scripts/apply_lifecycle.py            # dry run (prints merged rules)
+.venv/bin/python scripts/apply_lifecycle.py --apply    # write merged rules (ADR-027)
 
 # Infra
-cd infra && AWS_PROFILE=default npx cdk synth
-cd infra && AWS_PROFILE=default npx cdk diff   # ALWAYS run and read before deploy
+cd infra && PATH="/opt/homebrew/opt/node@22/bin:$PATH" AWS_PROFILE=default npx cdk synth
+cd infra && PATH="/opt/homebrew/opt/node@22/bin:$PATH" AWS_PROFILE=default npx cdk diff   # ALWAYS run before deploy
 
-# Deploy (cdk deploy + prefix-scoped page syncs; see ADR-024)
-python scripts/deploy.py
+# Deploy — gate lives in --approved, not CDK's TTY prompt (ADR-032)
+.venv/bin/python scripts/deploy.py              # cdk diff and exit
+.venv/bin/python scripts/deploy.py --approved   # cdk deploy --require-approval never
 
 # Run the collector now, in AWS
-aws lambda invoke --function-name kiekkokeskus-collector --profile default out.json && cat out.json
+aws lambda invoke --function-name kiekkokeskus-collector --profile default --region us-east-1 out.json && cat out.json
 
-# Capture a real payload as a test fixture
-python scripts/fetch_fixture.py <url>    # writes tests/fixtures/<endpoint>__<date>.json.gz
+# Capture a real payload as a test fixture (filename date is ET capture date; ADR-033)
+.venv/bin/python scripts/fetch_fixture.py <url>    # writes tests/fixtures/<slug>__<captureDateET>.json.gz
 
 # Look at what the pages see
 aws s3 cp s3://jurigregg-static-site/data/kiekkokeskus/bolts.json - --profile default | python -m json.tool
