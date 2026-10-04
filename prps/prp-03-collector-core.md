@@ -2,7 +2,7 @@
 
 **Created**: 2026-10-04
 **Initial**: `initials/init-03-collector-core.md`
-**Status**: Ready
+**Status**: Complete
 **ADRs**: ADR-003, 005, 006, 008, 009, 010, 011, 012, 013, 014, 020, 022, 025, 032; **adds ADR-033** (schedule season source, DECISIONS-DATA.md); may update ADR-009
 
 ---

@@ -20,7 +20,7 @@ Personal, ad-free, with a not-affiliated disclaimer (ADR-002).
                                ▼
 ┌──────────────────────────────────────────────────────────────────┐
 │  Lambda: kiekkokeskus-collector (Python 3.13, arm64, stdlib)     │
-│   1. resolve season from schedule `currentSeason` (ADR-008)         │
+│   1. resolve season from schedule games[].season / standings[0].seasonId (ADR-033) │
 │   2. fetch dated endpoints, never /now (ADR-008)                    │
 │   3. write raw/YYYY-MM-DD/*.json.gz BEFORE parsing (ADR-006)        │
 │   4. build bolts.json, leijonat.json                             │
@@ -150,7 +150,7 @@ kiekkokeskus/
 ├── src/kiekkokeskus/
 │   ├── handler.py                # Lambda entry: orchestration only
 │   ├── nhl.py                    # HTTP fetch, retry, URL builders
-│   ├── season.py                 # currentSeason resolution, ET date logic
+│   ├── season.py                 # ET date logic + season from payload (ADR-033)
 │   ├── archive.py                # raw gz writes, S3 put helpers
 │   ├── parse/                    # one module per endpoint family (standings, boxscore, bios…)
 │   ├── build_bolts.py

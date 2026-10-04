@@ -129,8 +129,9 @@ main site, and the whole of jurigregg.com lives there.
 ### 2. NHL API rules
 - **Raw before parse** (ADR-006). Archive the response first, then parse. A parse error must never
   lose the fetch.
-- **Dated URLs only**, never `/now` (ADR-008). The season comes from `currentSeason` and is never
-  computed.
+- **Dated URLs only**, never `/now` (ADR-008). The season comes from the payload — read
+  `schedule.gameWeek[].games[].season` on `dataDate`, else `standings[0].seasonId` — and is
+  **never computed** (ADR-008 as amended by ADR-033).
 - Sequential requests, a descriptive `User-Agent`, and retry with backoff on 429/5xx (3 attempts).
 - **On failure, never overwrite current state.** If the build fails, `bolts.json`/`leijonat.json`
   keep yesterday's data.

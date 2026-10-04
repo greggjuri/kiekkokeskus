@@ -136,7 +136,9 @@ ADR-009 reduces how much depends on snapshots.
 ## ADR-008: Use dated endpoints, not `/now`
 
 **Date**: 2026-10-02
-**Status**: Accepted
+**Status**: Accepted. **Partially superseded by ADR-033** on the season **source** only
+(payload field `currentSeason` isn't present in `schedule/{date}` — use `games[].season` /
+`standings[0].seasonId` instead). The method (resolve from payload, dated URLs, never `/now`) still holds.
 
 ### Context
 `/now` URLs are 307 redirects:
@@ -148,9 +150,8 @@ ADR-009 reduces how much depends on snapshots.
 | `club-schedule-season/TBL/now` | `club-schedule-season/TBL/20262027` |
 
 ### Decision
-Resolve the season once, then request explicit URLs, so every raw archive records exactly what
-was asked for. The season ID comes from `currentSeason` in the schedule payload and is never
-computed.
+Resolve the season once from a dated payload, then request explicit URLs so every raw archive
+records exactly what was asked for. Season is **never computed**. (Field: see ADR-033.)
 
 ---
 

@@ -3,10 +3,10 @@
 **Spec numbers:** `01`–`09` are reserved by the backlog below. **The next free number for a new,
 unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029).
 
-## Current: Phase 1, Foundation
+## Current: Phase 1 → Phase 2 handover
 
 ### In Progress
-- [ ] `init-03-collector-core` - PRP-03 Steps 0–7 done; Step 8 docs tidy next
+*(none)*
 
 ### Up Next
 - [ ] `init-04-bolts-json` — standings + gaps, last/next games, full skater/goalie rows, special teams
@@ -14,6 +14,11 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ---
 
 ## Recently Completed
+
+### init-03-collector-core (2026-10-04)
+- [x] Dates, fetch+retry, raw+manifest, orchestration. 11-request archive on manual invoke;
+      19-request archive on first scheduled run. ADR-033 added (season source), ADR-009
+      re-verified from raw and caveat struck, ADR-008 marked partially superseded (PRP-03)
 
 ### init-02-infra (2026-10-04)
 - [x] CDK stack deployed; health file served through CloudFront with correct Cache-Control;
@@ -94,7 +99,6 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ## Known Issues
 
-- ADR-009 was verified through a summarizing fetch, not a raw diff. Re-verify in init-03.
 - Main site repo needs the same "no `--delete` at bucket root" rule in its CLAUDE.md (ADR-024).
   Owner: Juri.
 
@@ -106,7 +110,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-04 (init-02 complete; init-03 Steps 0–7 done, docs tidy next)*
+*Last updated: 2026-10-04 (init-02 + init-03 complete; next: init-04)*
 
 ---
 
