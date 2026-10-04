@@ -1,5 +1,10 @@
 """Deploy KiekkokeskusStack and (future) sync site prefixes.
 
+Default behavior is `cdk diff`, which exits without modifying anything. Pass `--approved` to
+actually deploy — that uses `cdk deploy --require-approval never`, because the approval gate
+belongs to the human workflow (/execute-prp: show diff, get go, then run with --approved), not
+to CDK's TTY prompt. See ADR-032.
+
 Hard rules:
 - AWS profile is always 'default' (ADR-025).
 - The page-sync section only allows the three owned prefixes (ADR-024).
@@ -8,6 +13,7 @@ Hard rules:
 
 from __future__ import annotations
 
+import argparse
 import os
 import pathlib
 import subprocess
@@ -27,8 +33,20 @@ def _subprocess_env() -> dict[str, str]:
     return env
 
 
+def cdk_diff() -> None:
+    cmd = ["npx", "cdk", "diff", "KiekkokeskusStack"]
+    subprocess.run(cmd, cwd=INFRA_DIR, env=_subprocess_env(), check=True)
+
+
 def cdk_deploy() -> None:
-    cmd = ["npx", "cdk", "deploy", "KiekkokeskusStack", "--require-approval", "broadening"]
+    cmd = [
+        "npx",
+        "cdk",
+        "deploy",
+        "KiekkokeskusStack",
+        "--require-approval",
+        "never",
+    ]
     subprocess.run(cmd, cwd=INFRA_DIR, env=_subprocess_env(), check=True)
 
 
@@ -51,6 +69,21 @@ def _check_allowed(dest: str) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Default: cdk diff and exit. --approved: cdk deploy + page sync."
+    )
+    parser.add_argument(
+        "--approved",
+        action="store_true",
+        help="run cdk deploy after you have reviewed the diff (ADR-032)",
+    )
+    args = parser.parse_args()
+
+    if not args.approved:
+        cdk_diff()
+        print("deploy.py: diff shown. Re-run with --approved to deploy.")
+        return
+
     cdk_deploy()
     page_sync()
     print("deploy: ok")

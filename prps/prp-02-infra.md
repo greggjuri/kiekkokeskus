@@ -315,18 +315,14 @@ all `working-directory: infra`. No AWS creds. `permissions: contents: read` rema
 **Files**: `scripts/deploy.py`, `scripts/smoke.py`
 
 `scripts/deploy.py`:
-- Enforces `cwd` is repo root; chdir to `infra/`
-- Builds subprocess env with **Node 22 on front of PATH** so the keg-only install is picked up:
-  ```python
-  NODE22 = "/opt/homebrew/opt/node@22/bin"
-  env = {**os.environ, "AWS_PROFILE": "default",
-         "PATH": f"{NODE22}:{os.environ.get('PATH','')}"}
-  ```
-  Verifies the dir exists; errors clearly if the user skipped Step 0's `brew install node@22`.
-- Runs `cdk deploy KiekkokeskusStack --require-approval broadening`
+- Builds subprocess env with **Node 22 on front of PATH** (keg-only). Errors clearly if the dir
+  is missing. Always sets `AWS_PROFILE=default`.
+- **Default run** → `cdk diff KiekkokeskusStack` and exits. No deploy.
+- **`--approved`** → `cdk deploy KiekkokeskusStack --require-approval never` (ADR-032). The
+  approval gate lives in the human workflow (/execute-prp: show diff → get go → run with
+  `--approved`), not in CDK's TTY prompt, which doesn't survive subprocess invocation.
 - **Guarded placeholder** page sync: `ALLOWED_PREFIXES = ('bolts/', 'leijonat/', 'kiekkokeskus/')`.
-  init-06 fills in the loop. Any `s3 sync` destination not starting with one of these raises
-  `SystemExit` (ADR-024).
+  init-06 fills in the loop. Any `s3 sync` destination not starting with one of these exits.
 
 `scripts/smoke.py` (stdlib `urllib` only): `/` → 200; `/sports` → 200;
 `/data/kiekkokeskus/_health.json` → 200, `Cache-Control` contains `max-age=300`, JSON parses,
@@ -341,15 +337,11 @@ non-zero on any failure.
 
 ### Step 6: Deploy, invoke, smoke (no commit)
 
-Interactive — needs user approval. Every `cdk` hand-run must pick up Node 22, not system Node 25:
+Interactive — needs user approval.
 
-```bash
-export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
-cd infra && AWS_PROFILE=default npx cdk diff
-```
-
-1. **cdk diff** as above → **show diff to user**. If **anything** not `kiekkokeskus-*` changes, STOP (CLAUDE.md Rule 1).
-2. `python scripts/deploy.py` → user approves CFN prompts. (deploy.py sets PATH itself.)
+1. `python scripts/deploy.py` → prints `cdk diff` and exits. **Show the diff to the user.** If
+   **anything** not `kiekkokeskus-*` changes, STOP (CLAUDE.md Rule 1).
+2. On user `go`: `python scripts/deploy.py --approved` → runs `cdk deploy --require-approval never`.
 3. User confirms the SNS subscription email (one click; AWS sends it immediately).
 4. `aws lambda invoke --function-name kiekkokeskus-collector --profile default /tmp/out.json && cat /tmp/out.json` → should print `{"status":"ok","key":"data/kiekkokeskus/_health.json"}`.
 5. `python scripts/smoke.py` → every check passes, including `/` and `/sports`.
@@ -426,8 +418,15 @@ captured object (not hand-written).
 **Files**: `docs/DECISIONS.md`, `docs/PLANNING.md`, `CLAUDE.md`, `docs/TASK.md`,
 `prps/prp-02-infra.md` (status → Complete).
 
-- Append **ADR-032** per spec text (ops baseline: `_health.json`, errors alarm, async retries = 0;
-  **include** the missed-run alarm — Step 8 is required now).
+- Append **ADR-032** (ops baseline + deploy gate):
+  - `_health.json` is ops-only (no `dataDate`/`season`); errors alarm → SNS email to greggjuri@gmail.com;
+    missed-run alarm (`Invocations Sum < 1` / day, treat-missing-as-breaching).
+  - Lambda async retries = 0 — the collector owns its own retries, Lambda defaults would
+    multiply runs and alerts.
+  - **Deploy gate**: `scripts/deploy.py` default is `cdk diff` and exit; `--approved` runs
+    `cdk deploy --require-approval never`. The gate lives in the human workflow (show diff →
+    get go → `--approved`), not in CDK's TTY prompt (which doesn't survive subprocess
+    invocation and would silently fail-open on security-sensitive changes).
 - Append a one-line **"Verified 2026-10-03"** note to **ADR-022** recording the legacy TTL finding
   (MinTTL=0, DefaultTTL=3600, MaxTTL=86400, no CachePolicyId — origin `max-age` wins). Keeps the
   cache question in the ADR where it lives; ADR-032 stays about ops.
