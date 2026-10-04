@@ -57,6 +57,16 @@ def main() -> int:
             f"status={payload.get('status')!r}",
         )
         ok &= _check("schemaVersion == 1", payload.get("schemaVersion") == 1)
+        ok &= _check(
+            "dataDate present",
+            isinstance(payload.get("dataDate"), str) and len(payload["dataDate"]) == 10,
+            f"dataDate={payload.get('dataDate')!r}",
+        )
+        ok &= _check(
+            "rawCount > 0",
+            isinstance(payload.get("rawCount"), int) and payload["rawCount"] > 0,
+            f"rawCount={payload.get('rawCount')!r}",
+        )
         gen = payload.get("generatedAt", "")
         try:
             gen_dt = datetime.strptime(gen, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
