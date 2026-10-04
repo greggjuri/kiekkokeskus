@@ -24,6 +24,7 @@ packages = ["src/kiekkokeskus"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers"
+pythonpath = ["scripts"]
 
 [tool.coverage.run]
 source = ["kiekkokeskus"]
