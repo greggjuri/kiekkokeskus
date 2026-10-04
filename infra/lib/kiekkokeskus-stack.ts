@@ -102,6 +102,20 @@ export class KiekkokeskusStack extends cdk.Stack {
     });
     errorsAlarm.addAlarmAction(new cwActions.SnsAction(alertTopic));
 
+    // Missed-run alarm (ADR-032): fires when the schedule stops firing or the Lambda
+    // stops being invoked. Invocations metric is only emitted when > 0, so we treat
+    // missing data as breaching and evaluate over a 24h window.
+    const missedAlarm = new cloudwatch.Alarm(this, 'CollectorMissedAlarm', {
+      alarmName: 'kiekkokeskus-collector-missed',
+      metric: collector.metricInvocations({ period: cdk.Duration.hours(24), statistic: 'Sum' }),
+      threshold: 1,
+      evaluationPeriods: 1,
+      datapointsToAlarm: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.BREACHING,
+    });
+    missedAlarm.addAlarmAction(new cwActions.SnsAction(alertTopic));
+
     // Suppress "unused" warnings for the imported bucket; it's intentionally not referenced
     // further — IAM is scoped by ARN above, not by passing the Bucket construct around.
     void siteBucket;

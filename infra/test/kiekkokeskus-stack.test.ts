@@ -63,6 +63,18 @@ describe('KiekkokeskusStack', () => {
     }));
   });
 
+  test('missed-run alarm on AWS/Lambda Invocations, treat-missing-as-breaching', () => {
+    t.hasResourceProperties('AWS::CloudWatch::Alarm', Match.objectLike({
+      AlarmName: 'kiekkokeskus-collector-missed',
+      MetricName: 'Invocations',
+      Namespace: 'AWS/Lambda',
+      ComparisonOperator: 'LessThanThreshold',
+      Threshold: 1,
+      TreatMissingData: 'breaching',
+      Period: 86400,
+    }));
+  });
+
   test('collector role has s3:PutObject scoped to data/kiekkokeskus/*, nothing else', () => {
     t.hasResourceProperties('AWS::IAM::Policy', Match.objectLike({
       PolicyDocument: Match.objectLike({
