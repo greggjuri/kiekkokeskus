@@ -160,7 +160,44 @@ Rendering `name.fi ?? name.default` fits a Finnish page. On an English page, Kuc
 
 ---
 
-## Appendix: Observed State, 2026-10-02
+## ADR-033: Season from the schedule's games (and standings fallback), not `currentSeason`
+
+**Date**: 2026-10-03
+**Status**: Accepted. **Partially supersedes ADR-008**.
+
+### Context
+ADR-008 directs the collector to resolve the season from `currentSeason` in a schedule payload.
+Fetching `schedule/{YYYY-MM-DD}` (`api-web.nhle.com/v1`) on 2026-10-03 (and verified across
+multiple dates) shows that payload has **no `currentSeason` field**. Its top-level keys are
+`nextStartDate`, `previousStartDate`, `gameWeek`, `oddsPartners`, `preSeasonStartDate`,
+`regularSeasonStartDate`, `regularSeasonEndDate`, `playoffEndDate`, `numberOfGames`. The returned
+`gameWeek` is a **7-day window** starting at the requested date, not just that date.
+
+### Decision
+Resolve the season from the payloads we already fetch, in this order:
+1. **Schedule**: `gameWeek[].games[].season` of any game whose `gameWeek.date == dataDate`.
+2. **Standings fallback**: `standings[0].seasonId` from `standings/{dataDate}`. Standings is
+   dated and doesn't need the season to fetch, so this fallback is cheap and reliable through
+   short in-season gaps (e.g. All-Star break, bye days).
+3. If both yield nothing: log, write `_manifest.json` with `season: null` and the error, raise.
+
+For the boxscore join (ADR-012), filter `gameWeek` to the entry whose `date == dataDate` before
+reading `games[]`.
+
+### Partial supersession of ADR-008
+ADR-008 remains in force on **method**: resolve from a payload, never compute; dated URLs,
+never `/now`. ADR-033 only amends the **field name**: it is `games[].season` /
+`standings[0].seasonId`, not `currentSeason`. CLAUDE.md Rule 2 and PLANNING update in the same
+commit so later PRPs don't chase a field that doesn't exist.
+
+### Consequences
+**Positive:** reliable season resolution without a dedicated endpoint; a short in-season gap
+doesn't fire an error alarm.
+**Negative:** we rely on two payloads (schedule + standings) instead of one. Both are already
+required by the collector, so no extra request.
+
+### References
+init-03-collector-core.md, prps/prp-03-collector-core.md
 
 These are not decisions. They give the first fixtures context.
 - Season `20262027` started 2026-10-01.

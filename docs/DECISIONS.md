@@ -157,7 +157,7 @@ computed.
 ## ADR-009: Standings history is backfillable by date
 
 **Date**: 2026-10-02
-**Status**: Accepted (verified 2026-10-02, see caveat)
+**Status**: Accepted (re-verified from raw 2026-10-03)
 
 ### Context
 `standings/{YYYY-MM-DD}` exists. The question was whether a past date returns standings as of that
@@ -166,14 +166,21 @@ date.
 ### Decision
 Yes. `standings/2026-04-01` returns season `20252026` with TBL at 74 GP and 98 pts (46-22-6), which
 is as of that date, not the final state. `standings/2026-10-01` has TBL at 1 GP, so a date includes
-that date's games. Its `standingsDateTimeUtc` was `2026-10-02T14:18:15Z`.
+that date's games.
+
+### Re-verified 2026-10-03 (raw diff)
+Captured fixtures `standings-2026-04-01__2026-10-03.json.gz`,
+`standings-2026-10-01__2026-10-03.json.gz`, `standings-2026-10-02__2026-10-03.json.gz`. Observed:
+- 2026-04-01 → `seasonId=20252026`, TBL 74 GP, 98 pts (46-22-6)
+- 2026-10-01 → `seasonId=20262027`, TBL 1 GP (0-1-0)
+- 2026-10-02 → `seasonId=20262027`, TBL 1 GP (unchanged — TBL idle that date; `leagueSequence` reorders because other teams played)
+
+Matches the summarizing fetch exactly; caveat removed.
 
 ### Consequences
 **Positive:** rank and points-pace history, including the cut line, can be rebuilt for any date or
 past season, and a missed run is a re-fetch. ADR-007 snapshots remain for data with no dated
 endpoint (player and club stats).
-**Caveat:** this was verified through a summarizing fetch, not a raw diff. Re-verify with raw
-payloads in the first collector session and keep them as fixtures.
 
 ---
 
