@@ -6,10 +6,11 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 1, Foundation
 
 ### In Progress
-- [ ] `init-02-infra` - executing PRP-02 (Steps 0–7 today; Steps 8–9 after first scheduled run 2026-10-04)
+- [ ] `init-02-infra` - PRP-02 Steps 0–7 done; Steps 8–9 after first scheduled run 2026-10-04
+- [ ] `init-03-collector-core` - executing PRP-03 (deploys tonight, so tomorrow's 10:00 ET run is the real collector)
 
 ### Up Next
-*(none in Phase 1 until init-02 completes)*
+*(none in Phase 1 until init-02 + init-03 complete)*
 
 ---
 
@@ -81,6 +82,11 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 - **FI save % format**: `,915` vs `91,5 %` (init-06)
 - **`raw/` publicly served**: accepted for now (ADR-020); revisit only if it matters
 - **Traded players**: how bios/club-stats represent them (init-04/05, TESTING watch list)
+- **Off-season gap**: PRP-03 falls back to `standings[0].seasonId` when schedule has no games on
+  `dataDate`, so short in-season gaps don't alarm. **True off-season** (both schedule *and*
+  standings return no useful fields) still fails loudly — do we want the collector paused during
+  known off-season windows (July–Sept), or is a daily alarm then acceptable? Settle before the
+  2027 off-season.
 
 ## Known Issues
 
@@ -96,7 +102,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-03 (init-02 in progress)*
+*Last updated: 2026-10-04 (init-02 awaiting first scheduled run; init-03 in progress)*
 
 ---
 
