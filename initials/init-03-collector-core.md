@@ -48,7 +48,7 @@ It doesn't build `bolts.json` or `leijonat.json`; those are init-04 and init-05.
    | `standings__{dataDate}` | `api-web.nhle.com/v1/standings/{dataDate}` | ADR-009 |
    | `club-schedule-season-TBL__{season}` | `…/club-schedule-season/TBL/{season}` | large; raw only (Observed State note) |
    | `club-stats-TBL__{season}-2` | `…/club-stats/TBL/{season}/2` | `gameType` 2 per ADR-014 |
-   | `boxscore-{gameId}` | `…/gamecenter/{gameId}/boxscore` | one per completed regular-season game on `dataDate` (ADR-012/013/014) |
+   | `boxscore__{gameId}` | `…/gamecenter/{gameId}/boxscore` | one per completed regular-season game on `dataDate` (ADR-012/013/014) |
    | `skater-bios-FIN__{season}__p{n}` | `api.nhle.com/stats/rest/en/skater/bios?…nationalityCode="FIN"…` | paginate until `total` (ADR-011) |
    | `goalie-bios-FIN__{season}__p{n}` | same, against `goalie/bios` | ADR-011 |
 

@@ -41,8 +41,17 @@ deploy.
 ### Rules
 1. **Captured, never typed.** Use `python scripts/fetch_fixture.py <url>`, which saves the gzipped
    body plus provenance (URL, fetch time, HTTP status) to `tests/fixtures/`.
-2. **Naming**: `{endpoint-slug}__{YYYY-MM-DD}[__{variant}].json.gz`, for example
-   `standings__2026-10-02.json.gz` or `boxscore-2026020001__2026-10-02.json.gz`.
+2. **Naming**: `{archive-slug}__{captureDateET}[__{variant}].json.gz`. The archive slug is the
+   endpoint name (dashes OK) joined to each parameter by **`__`** (double underscore). The
+   capture date in ET goes after another `__`. Examples:
+   - archive: `standings__2026-10-02.json.gz`
+   - fixture: `standings__2026-10-02__2026-10-03.json.gz` (standings-for-2026-10-02 captured on 2026-10-03 ET)
+   - archive: `club-stats-TBL__20262027__2.json.gz`
+   - fixture + variant: `schedule__2026-10-01__2026-10-03__unknown-state.json.gz`
+
+   Archive → fixture mapping: the fixture filename is the archive slug + `__{captureDateET}`
+   (+ optional `__{variant}`). The archive slug itself is produced by the collector in
+   `handler.py` and by `scripts/fetch_fixture.py` from the URL path.
 3. **Variants** are the only allowed hand edits: a real payload with one documented mutation used
    to force a gotcha that no captured payload contains. The variant name says what changed
    (`__goalie-no-shots`), and `tests/fixtures/README.md` records which ADR it serves.

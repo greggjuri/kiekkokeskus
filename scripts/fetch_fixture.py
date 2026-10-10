@@ -32,15 +32,15 @@ def _default_slug(url: str) -> str:
     """Build a readable slug from the URL path when --slug isn't provided."""
     parsed = urlparse(url)
     parts = [p for p in parsed.path.split("/") if p and p != "v1"]
-    # Replace API prefix segments
+    # Endpoint keeps internal dashes; "__" separates endpoint from each parameter (TESTING.md).
     if parts and parts[0] in {"schedule", "standings"} and len(parts) >= 2:
-        return f"{parts[0]}-{parts[1]}"
+        return f"{parts[0]}__{parts[1]}"
     if parts[:1] == ["club-schedule-season"] and len(parts) >= 3:
-        return f"club-schedule-season-{parts[1]}-{parts[2]}"
+        return f"club-schedule-season-{parts[1]}__{parts[2]}"
     if parts[:1] == ["club-stats"] and len(parts) >= 4:
-        return f"club-stats-{parts[1]}-{parts[2]}-{parts[3]}"
+        return f"club-stats-{parts[1]}__{parts[2]}__{parts[3]}"
     if parts[:1] == ["gamecenter"] and len(parts) >= 3:
-        return f"boxscore-{parts[1]}"
+        return f"boxscore__{parts[1]}"
     if "skater" in parts and "bios" in parts:
         return "skater-bios"
     if "goalie" in parts and "bios" in parts:

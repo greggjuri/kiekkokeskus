@@ -15,7 +15,7 @@ FX = pathlib.Path(__file__).parent / "fixtures"
 
 def _all_rows() -> list[dict]:
     payload = json.loads(
-        gzip.decompress((FX / "skater-bios-FIN-20262027-p0__2026-10-03.json.gz").read_bytes())
+        gzip.decompress((FX / "skater-bios-FIN__20262027__p0__2026-10-03.json.gz").read_bytes())
     )
     return payload["data"]
 

@@ -42,8 +42,8 @@ FIXED_NOW = datetime(2026, 10, 3, 14, 0, 12, tzinfo=UTC)
 
 def test_raw_key_scoped_to_prefix() -> None:
     assert (
-        raw_key(RUN_DATE, "schedule-2026-10-02")
-        == "data/kiekkokeskus/raw/2026-10-03/schedule-2026-10-02.json.gz"
+        raw_key(RUN_DATE, "schedule__2026-10-02")
+        == "data/kiekkokeskus/raw/2026-10-03/schedule__2026-10-02.json.gz"
     )
 
 
@@ -88,7 +88,7 @@ def test_write_manifest_body_and_headers() -> None:
         version="0.1.0",
         requests=[
             make_request_row(
-                slug="schedule-2026-10-02",
+                slug="schedule__2026-10-02",
                 url="https://api-web.nhle.com/v1/schedule/2026-10-02",
                 final_url="https://api-web.nhle.com/v1/schedule/2026-10-02",
                 status=200,
@@ -115,7 +115,7 @@ def test_write_manifest_body_and_headers() -> None:
     assert doc["dataDate"] == "2026-10-02"
     assert doc["season"] == "20262027"
     assert doc["finishedAt"] == "2026-10-03T14:00:12Z"
-    assert doc["requests"][0]["slug"] == "schedule-2026-10-02"
+    assert doc["requests"][0]["slug"] == "schedule__2026-10-02"
     assert doc["requests"][0]["error"] is None
     assert doc["requests"][0]["bytes"] == len(b'{"ok":1}')
 
@@ -132,7 +132,7 @@ def test_manifest_with_error_row_still_writes() -> None:
         version="0.1.0",
         requests=[
             make_request_row(
-                slug="schedule-2026-10-02",
+                slug="schedule__2026-10-02",
                 url="https://api-web.nhle.com/v1/schedule/2026-10-02",
                 final_url="",
                 status=500,

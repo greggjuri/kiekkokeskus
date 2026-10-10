@@ -77,16 +77,16 @@ tests/test_handler_orchestration.py                 # NEW (expand init-02 tests)
 # Fixture filename convention: date in filename = capture date in ET.
 # Game date / standings date / etc. lives inside the slug and in the provenance row.
 # Today's captures (ET) all tag __2026-10-03.
-tests/fixtures/schedule-2026-10-01__2026-10-03.json.gz          # NEW: schedule for 2026-10-01, captured 2026-10-03
-tests/fixtures/schedule-2026-09-26__2026-10-03.json.gz          # NEW: preseason FINAL
-tests/fixtures/schedule-2026-12-15__2026-10-03.json.gz          # NEW: FUT games
-tests/fixtures/schedule-2026-10-01__2026-10-03__unknown-state.json.gz  # NEW: variant for ADR-013
-tests/fixtures/standings-2026-04-01__2026-10-03.json.gz         # NEW
-tests/fixtures/standings-2026-10-01__2026-10-03.json.gz         # NEW
-tests/fixtures/standings-2026-10-02__2026-10-03.json.gz         # NEW
-tests/fixtures/boxscore-2026020010__2026-10-03.json.gz          # NEW: Tolvanen game (played 2026-10-01)
-tests/fixtures/skater-bios-FIN-20262027-p0__2026-10-03.json.gz  # NEW
-tests/fixtures/goalie-bios-FIN-20262027-p0__2026-10-03.json.gz  # NEW
+tests/fixtures/schedule__2026-10-01__2026-10-03.json.gz          # NEW: schedule for 2026-10-01, captured 2026-10-03
+tests/fixtures/schedule__2026-09-26__2026-10-03.json.gz          # NEW: preseason FINAL
+tests/fixtures/schedule__2026-12-15__2026-10-03.json.gz          # NEW: FUT games
+tests/fixtures/schedule__2026-10-01__2026-10-03__unknown-state.json.gz  # NEW: variant for ADR-013
+tests/fixtures/standings__2026-04-01__2026-10-03.json.gz         # NEW
+tests/fixtures/standings__2026-10-01__2026-10-03.json.gz         # NEW
+tests/fixtures/standings__2026-10-02__2026-10-03.json.gz         # NEW
+tests/fixtures/boxscore__2026020010__2026-10-03.json.gz          # NEW: Tolvanen game (played 2026-10-01)
+tests/fixtures/skater-bios-FIN__20262027__p0__2026-10-03.json.gz  # NEW
+tests/fixtures/goalie-bios-FIN__20262027__p0__2026-10-03.json.gz  # NEW
 tests/fixtures/README.md                            # MODIFY (provenance rows)
 docs/DECISIONS-DATA.md                              # MODIFY: ADR-033 + ADR-009 note or new ADR
 docs/PLANNING.md                                    # MODIFY: Data Contract rows for raw/manifest
@@ -104,7 +104,7 @@ Largest expected file: `src/kiekkokeskus/handler.py` ~180 lines; `nhl.py` ~160; 
 | `schedule/{date}` has `currentSeason` and covers one date | **No**, and **no**. Top-level keys are `nextStartDate`, `previousStartDate`, `gameWeek`, `oddsPartners`, `preSeasonStartDate`, `regularSeasonStartDate`, `regularSeasonEndDate`, `playoffEndDate`, `numberOfGames`. **`currentSeason` is absent.** `gameWeek` is 7 entries starting at the requested date. | **ADR-033** (DECISIONS-DATA.md): season from `gameWeek[].games[].season` on games on `dataDate`, else `standings[0].seasonId`; filter `gameWeek` to `dataDate` for the boxscore join (ADR-012). **ADR-033 partially supersedes ADR-008's "`currentSeason`" wording**; the spirit (read from payload, don't compute) holds. CLAUDE.md Rule 2 and PLANNING must be updated in the same commit so no later PRP chases a field that doesn't exist. |
 | Season fallback if no games on `dataDate` | Standings is dated and doesn't need the season. Rows carry `seasonId` (verified: `standings[].seasonId == 20262027` on 2026-10-02). | **Fallback via standings, not the week**: season from `games[].season` on `dataDate` → else `standings.standings[0].seasonId` → else fail. Prevents a short in-season gap (e.g. All-Star break) from alarming every morning. |
 | bios query string + pagination | `?cayenneExp=seasonId=20262027 and nationalityCode="FIN"&limit=N&start=M` works. Response: `{"data": [...], "total": N}`. `limit=1000` accepted; today returns all 26 FIN skaters in one page. | Use `limit=1000` by default (one page covers today's season). Tests force small `limit` via fake opener to exercise pagination logic (ADR-011). |
-| TBL @ NYR 2026-10-01 `gameId` | **`2026020010`**, `gameType=2`, `gameState=OFF`. | fixture filename: `boxscore-2026020010__2026-10-02.json.gz` (dataDate = 2026-10-02 run date yields last-night games) |
+| TBL @ NYR 2026-10-01 `gameId` | **`2026020010`**, `gameType=2`, `gameState=OFF`. | fixture filename: `boxscore__2026020010__2026-10-02.json.gz` (dataDate = 2026-10-02 run date yields last-night games) |
 | Dates for fixture variants | Preseason FINAL: **2026-09-26** (14 games, `gameType=1, FINAL`). FUT regular: **2026-12-15** (11 games, `gameType=2, FUT`). | Use these for `schedule__2026-09-26` and `schedule__2026-12-15` fixtures. |
 | Encodings — does any endpoint return gzip or non-JSON by default? | Headers show `content-type: application/json` and `vary: Accept-Encoding`. Python's `urllib.request.urlopen` does not send `Accept-Encoding` by default → server returns **plain** JSON. | Defensive: fetch inspects `Content-Encoding` response header and decompresses if present. Archive always stores the **plain** JSON body (gzipped once, by us). |
 
@@ -291,7 +291,7 @@ Commit + push; wait for CI green.
 - **Date convention**: the date in a fixture's filename is the **ET date it was captured**. The
   content's date (game date, standings date, bios season) lives in the **slug**. Today's
   captures all tag `__2026-10-03`.
-- Variant: `schedule-2026-10-01__2026-10-03__unknown-state.json.gz` is a documented
+- Variant: `schedule__2026-10-01__2026-10-03__unknown-state.json.gz` is a documented
   hand-mutation of the real schedule payload — change exactly one game's `gameState` to `"XYZ"`.
   The provenance row calls it out as the variant source + ADR-013.
 

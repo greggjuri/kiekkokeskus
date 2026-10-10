@@ -115,11 +115,11 @@ def test_default_now_path_runs(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_happy_path_writes_raw_manifest_and_health() -> None:
-    sched_body = _load_fixture("schedule-2026-10-01__2026-10-03.json.gz")
-    st_body = _load_fixture("standings-2026-10-01__2026-10-03.json.gz")
-    box_body = _load_fixture("boxscore-2026020010__2026-10-03.json.gz")
-    skaters_body = _load_fixture("skater-bios-FIN-20262027-p0__2026-10-03.json.gz")
-    goalies_body = _load_fixture("goalie-bios-FIN-20262027-p0__2026-10-03.json.gz")
+    sched_body = _load_fixture("schedule__2026-10-01__2026-10-03.json.gz")
+    st_body = _load_fixture("standings__2026-10-01__2026-10-03.json.gz")
+    box_body = _load_fixture("boxscore__2026020010__2026-10-03.json.gz")
+    skaters_body = _load_fixture("skater-bios-FIN__20262027__p0__2026-10-03.json.gz")
+    goalies_body = _load_fixture("goalie-bios-FIN__20262027__p0__2026-10-03.json.gz")
     # Stand-ins for club-schedule and club-stats (not tested here, just need valid payloads)
     stub = b'{"ok": true, "games": []}'
 
@@ -161,13 +161,13 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
         if k.startswith("data/kiekkokeskus/raw/") and not k.endswith("_manifest.json")
     ]
     assert len(raw_keys) == 14
-    assert any(k.endswith("schedule-2026-10-01.json.gz") for k in raw_keys)
-    assert any(k.endswith("standings-2026-10-01.json.gz") for k in raw_keys)
-    assert any("boxscore-2026020010" in k for k in raw_keys)
-    assert sum(1 for k in raw_keys if "boxscore-" in k) == 8
+    assert any(k.endswith("schedule__2026-10-01.json.gz") for k in raw_keys)
+    assert any(k.endswith("standings__2026-10-01.json.gz") for k in raw_keys)
+    assert any("boxscore__2026020010" in k for k in raw_keys)
+    assert sum(1 for k in raw_keys if "boxscore__" in k) == 8
 
     # Raw objects are gzipped and advertise it
-    sched_call = next(c for c in put.calls if c[0].endswith("schedule-2026-10-01.json.gz"))
+    sched_call = next(c for c in put.calls if c[0].endswith("schedule__2026-10-01.json.gz"))
     assert sched_call[4] == "gzip"
     assert gzip.decompress(sched_call[1]) == sched_body
 
@@ -205,7 +205,7 @@ def test_season_fallback_via_standings_when_schedule_empty_for_data_date() -> No
         ]
     }
     sched_body = json.dumps(sched_payload).encode()
-    st_body = _load_fixture("standings-2026-10-01__2026-10-03.json.gz")
+    st_body = _load_fixture("standings__2026-10-01__2026-10-03.json.gz")
     stub = b'{"ok": true}'
 
     put = FakePut()
@@ -226,8 +226,8 @@ def test_season_fallback_via_standings_when_schedule_empty_for_data_date() -> No
 
     manifest = next(json.loads(c[1]) for c in put.calls if c[0].endswith("_manifest.json"))
     assert manifest["season"] == "20262027"  # from standings
-    assert manifest["requests"][0]["slug"] == "schedule-2026-10-01"
-    assert manifest["requests"][1]["slug"] == "standings-2026-10-01"
+    assert manifest["requests"][0]["slug"] == "schedule__2026-10-01"
+    assert manifest["requests"][1]["slug"] == "standings__2026-10-01"
 
 
 # --- both-missing: schedule+standings yield no season -----------------------
@@ -256,7 +256,7 @@ def test_both_missing_writes_manifest_with_null_season_and_no_health() -> None:
 
 def test_fetch_failure_records_error_and_prevents_health() -> None:
     """A standings fetch error after season is known: run still fails loudly, no _health."""
-    sched_body = _load_fixture("schedule-2026-10-01__2026-10-03.json.gz")
+    sched_body = _load_fixture("schedule__2026-10-01__2026-10-03.json.gz")
     put = FakePut()
     fetch_fn = _make_fetch(
         {
@@ -276,7 +276,7 @@ def test_fetch_failure_records_error_and_prevents_health() -> None:
     keys = [c[0] for c in put.calls]
     assert "data/kiekkokeskus/_health.json" not in keys
     manifest = next(json.loads(c[1]) for c in put.calls if c[0].endswith("_manifest.json"))
-    standings_row = next(r for r in manifest["requests"] if r["slug"] == "standings-2026-10-01")
+    standings_row = next(r for r in manifest["requests"] if r["slug"] == "standings__2026-10-01")
     assert standings_row["error"] == "gave up after 3 attempts"
     assert standings_row["bytes"] == 0
 
@@ -285,7 +285,7 @@ def test_fetch_failure_records_error_and_prevents_health() -> None:
 
 
 def test_raw_schedule_stored_even_if_parser_raises(monkeypatch: pytest.MonkeyPatch) -> None:
-    sched_body = _load_fixture("schedule-2026-10-01__2026-10-03.json.gz")
+    sched_body = _load_fixture("schedule__2026-10-01__2026-10-03.json.gz")
 
     def exploding_extract(*_a, **_k):
         raise ValueError("boom in parse.schedule")
@@ -297,6 +297,6 @@ def test_raw_schedule_stored_even_if_parser_raises(monkeypatch: pytest.MonkeyPat
         handler({"date": "2026-10-01"}, None, put=put, now=lambda: FIXED_NOW, fetch_fn=fetch_fn)
 
     # The schedule raw object was already stored before the parser was called.
-    raw_sched = [c for c in put.calls if c[0].endswith("schedule-2026-10-01.json.gz")]
+    raw_sched = [c for c in put.calls if c[0].endswith("schedule__2026-10-01.json.gz")]
     assert len(raw_sched) == 1
     assert gzip.decompress(raw_sched[0][1]) == sched_body
