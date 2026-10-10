@@ -18,7 +18,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
-from kiekkokeskus import __version__, nhl
+from kiekkokeskus import __version__, build_bolts, nhl
 from kiekkokeskus.archive import (
     Manifest,
     PutObject,
@@ -29,6 +29,7 @@ from kiekkokeskus.archive import (
 )
 from kiekkokeskus.parse import schedule as sched_parse
 from kiekkokeskus.parse import standings as st_parse
+from kiekkokeskus.parse import stats_rest
 from kiekkokeskus.season import resolve_data_date, run_date_et
 
 log = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ log.setLevel(logging.INFO)
 
 TBL = "TBL"
 HEALTH_SLUG = "_health.json"
+BOLTS_SLUG = "bolts.json"
 
 
 def _default_put() -> PutObject:
@@ -77,6 +79,7 @@ def _write_health(
     trigger: str,
     data_date_iso: str,
     raw_count: int,
+    built: list[str],
 ) -> str:
     key = f"{prefix}{HEALTH_SLUG}"
     payload = {
@@ -87,10 +90,26 @@ def _write_health(
         "trigger": trigger,
         "dataDate": data_date_iso,
         "rawCount": raw_count,
+        "built": built,
     }
     body = json.dumps(payload, separators=(",", ":")).encode()
     put(key, body, "application/json", "public, max-age=300", None)
     return key
+
+
+def _check_stats_rest(payload: dict | None, slug: str, requests: list) -> None:
+    """If a stats REST payload is paginated unexpectedly, mark the last manifest row as errored.
+
+    `_fetch_and_archive` appends the row before this is called, so index -1 is correct.
+    ADR-035: raise loudly rather than silently truncate; the had_error branch at the end picks
+    this up.
+    """
+    if payload is None:
+        return
+    try:
+        stats_rest.check_complete(payload, slug)
+    except stats_rest.StatsRestTruncated as e:
+        requests[-1].error = str(e)
 
 
 def _fetch_and_archive(
@@ -173,6 +192,10 @@ def handler(
         version=__version__,
     )
 
+    # In-memory parsed payloads keyed by endpoint family. Used by the build phase so we don't
+    # re-read S3 (init-04).
+    bodies: dict[str, dict] = {}
+
     # Step 1: schedule
     sched_payload = _fetch_and_archive(
         put=put,
@@ -183,6 +206,8 @@ def handler(
         requests=manifest.requests,
         fetch_fn=fetch_fn,
     )
+    if sched_payload is not None:
+        bodies["schedule"] = sched_payload
     schedule_season: str | None = None
     game_ids: list[int] = []
     if sched_payload is not None:
@@ -198,6 +223,8 @@ def handler(
         requests=manifest.requests,
         fetch_fn=fetch_fn,
     )
+    if st_payload is not None:
+        bodies["standings"] = st_payload
     standings_season = st_parse.season_id(st_payload) if st_payload else None
 
     season = schedule_season or standings_season
@@ -224,7 +251,7 @@ def handler(
         raise RuntimeError(err)
 
     # Step 3: TBL club endpoints
-    _fetch_and_archive(
+    cs_payload = _fetch_and_archive(
         put=put,
         now=now,
         run_date=run_date,
@@ -233,7 +260,9 @@ def handler(
         requests=manifest.requests,
         fetch_fn=fetch_fn,
     )
-    _fetch_and_archive(
+    if cs_payload is not None:
+        bodies["club-schedule"] = cs_payload
+    cst_payload = _fetch_and_archive(
         put=put,
         now=now,
         run_date=run_date,
@@ -242,6 +271,8 @@ def handler(
         requests=manifest.requests,
         fetch_fn=fetch_fn,
     )
+    if cst_payload is not None:
+        bodies["club-stats"] = cst_payload
 
     # Step 4: boxscores for completed reg-season games on dataDate
     for gid in game_ids:
@@ -282,30 +313,40 @@ def handler(
             page += 1
 
     # Step 6: stats REST — TBL-scoped skater reports + league-wide team summary.
-    # Single-page fetches with limit=1000. Pagination guard (ADR-035) lands in Step 3.
-    for slug_prefix, url_fn in (
-        ("skater-summary-TBL", nhl.url_skater_summary),
-        ("skater-realtime-TBL", nhl.url_skater_realtime),
-        ("skater-faceoff-TBL", nhl.url_skater_faceoff),
+    # Single-page fetches with limit=1000. Pagination guard (ADR-035): raise loudly on
+    # unexpected truncation by marking the manifest row as errored.
+    for bucket, slug_prefix, url_fn in (
+        ("skater-summary", "skater-summary-TBL", nhl.url_skater_summary),
+        ("skater-realtime", "skater-realtime-TBL", nhl.url_skater_realtime),
+        ("skater-faceoff", "skater-faceoff-TBL", nhl.url_skater_faceoff),
     ):
-        _fetch_and_archive(
+        slug = f"{slug_prefix}__{season}"
+        payload = _fetch_and_archive(
             put=put,
             now=now,
             run_date=run_date,
-            slug=f"{slug_prefix}__{season}",
+            slug=slug,
             url=url_fn(season),
             requests=manifest.requests,
             fetch_fn=fetch_fn,
         )
-    _fetch_and_archive(
+        if payload is not None:
+            bodies[bucket] = payload
+            _check_stats_rest(payload, slug, manifest.requests)
+
+    ts_slug = f"team-summary__{season}"
+    ts_payload = _fetch_and_archive(
         put=put,
         now=now,
         run_date=run_date,
-        slug=f"team-summary__{season}",
+        slug=ts_slug,
         url=nhl.url_team_summary(season),
         requests=manifest.requests,
         fetch_fn=fetch_fn,
     )
+    if ts_payload is not None:
+        bodies["team-summary"] = ts_payload
+        _check_stats_rest(ts_payload, ts_slug, manifest.requests)
 
     # Fail loudly if any request errored
     had_error = any(req.error for req in manifest.requests)
@@ -318,6 +359,30 @@ def handler(
             f"collector run had {sum(1 for r in manifest.requests if r.error)} errored requests"
         )
 
+    # Build phase (ADR-035): compose bolts.json from in-memory bodies.
+    built: list[str] = []
+    try:
+        bolts = build_bolts.build(
+            data_date=data_date,
+            season=season,
+            now_iso=iso_z(now()),
+            standings_payload=bodies["standings"],
+            club_stats_payload=bodies["club-stats"],
+            club_schedule_payload=bodies["club-schedule"],
+            skater_summary_payload=bodies["skater-summary"],
+            skater_realtime_payload=bodies["skater-realtime"],
+            skater_faceoff_payload=bodies["skater-faceoff"],
+            team_summary_payload=bodies["team-summary"],
+        )
+    except Exception as e:
+        log.error(json.dumps({"event": "build_failed", "builder": "bolts", "error": str(e)}))
+        raise
+    bolts_body = json.dumps(bolts, separators=(",", ":")).encode()
+    bolts_key = f"{prefix}{BOLTS_SLUG}"
+    put(bolts_key, bolts_body, "application/json", "public, max-age=300", None)
+    built.append("bolts")
+    log.info(json.dumps({"event": "bolts_written", "key": bolts_key}))
+
     key = _write_health(
         put=put,
         now=now,
@@ -325,6 +390,7 @@ def handler(
         trigger=trigger,
         data_date_iso=data_date.isoformat(),
         raw_count=raw_count,
+        built=built,
     )
     log.info(json.dumps({"event": "health_written", "key": key, "trigger": trigger}))
-    return {"status": "ok", "key": key, "rawCount": raw_count}
+    return {"status": "ok", "key": key, "rawCount": raw_count, "built": built}

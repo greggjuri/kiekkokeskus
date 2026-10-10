@@ -153,11 +153,17 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     )
     assert result["status"] == "ok"
 
-    # Every raw key under raw/{runDate}/ except _health
+    # Every raw key under raw/{runDate}/ except bolts.json and _health.json
     keys = [c[0] for c in put.calls]
     assert all(k.startswith("data/kiekkokeskus/") for k in keys)
     non_raw = [k for k in keys if not k.startswith("data/kiekkokeskus/raw/")]
-    assert non_raw == ["data/kiekkokeskus/_health.json"]
+    assert sorted(non_raw) == sorted(
+        ["data/kiekkokeskus/bolts.json", "data/kiekkokeskus/_health.json"]
+    )
+    # bolts.json order: written before _health.json
+    bolts_i = keys.index("data/kiekkokeskus/bolts.json")
+    health_i = keys.index("data/kiekkokeskus/_health.json")
+    assert bolts_i < health_i, "bolts.json must land before _health.json"
 
     # 2 (schedule+standings) + 2 (club) + 8 (boxscores) + 2 (bios) + 4 (stats REST) = 18
     raw_keys = [
@@ -191,7 +197,7 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     assert all(r["error"] is None for r in manifest["requests"])
     assert all(r["status"] == 200 for r in manifest["requests"])
 
-    # Health has dataDate + rawCount, schemaVersion stays 1
+    # Health has dataDate + rawCount + built, schemaVersion stays 1
     health_call = next(c for c in put.calls if c[0].endswith("_health.json"))
     health = json.loads(health_call[1])
     assert health["schemaVersion"] == 1
@@ -199,6 +205,18 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     assert health["dataDate"] == "2026-10-01"
     assert health["rawCount"] == 18
     assert health["version"] == __version__
+    assert health["built"] == ["bolts"]
+
+    # bolts.json has correct envelope + cache header
+    bolts_call = next(c for c in put.calls if c[0].endswith("bolts.json"))
+    _, bolts_body, bolts_ctype, bolts_cache, bolts_enc = bolts_call
+    assert bolts_ctype == "application/json"
+    assert "max-age=300" in bolts_cache
+    assert bolts_enc is None
+    bolts = json.loads(bolts_body)
+    assert bolts["schemaVersion"] == 1
+    assert bolts["dataDate"] == "2026-10-01"
+    assert bolts["season"] == "20262027"
 
 
 # --- season fallback via standings (ADR-033) --------------------------------
@@ -281,6 +299,10 @@ def test_fetch_failure_records_error_and_prevents_health() -> None:
             "gamecenter/2026020010": b'{"ok":true}',
             "skater/bios": b'{"data":[],"total":0}',
             "goalie/bios": b'{"data":[],"total":0}',
+            "skater/summary": b'{"data":[],"total":0}',
+            "skater/realtime": b'{"data":[],"total":0}',
+            "skater/faceoffpercentages": b'{"data":[],"total":0}',
+            "team/summary": b'{"data":[],"total":0}',
         }
     )
     with pytest.raises(RuntimeError, match="errored requests"):
@@ -288,6 +310,7 @@ def test_fetch_failure_records_error_and_prevents_health() -> None:
 
     keys = [c[0] for c in put.calls]
     assert "data/kiekkokeskus/_health.json" not in keys
+    assert "data/kiekkokeskus/bolts.json" not in keys  # build phase skipped on fetch error
     manifest = next(json.loads(c[1]) for c in put.calls if c[0].endswith("_manifest.json"))
     standings_row = next(r for r in manifest["requests"] if r["slug"] == "standings__2026-10-01")
     assert standings_row["error"] == "gave up after 3 attempts"
@@ -313,3 +336,83 @@ def test_raw_schedule_stored_even_if_parser_raises(monkeypatch: pytest.MonkeyPat
     raw_sched = [c for c in put.calls if c[0].endswith("schedule__2026-10-01.json.gz")]
     assert len(raw_sched) == 1
     assert gzip.decompress(raw_sched[0][1]) == sched_body
+
+
+# --- build-phase failure (init-04) ------------------------------------------
+
+
+def test_build_failure_skips_bolts_and_health_and_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """PRP-04 Step 5: a builder exception must leave no bolts.json and no _health.json."""
+    sched_body = _load_fixture("schedule__2026-10-01__2026-10-03.json.gz")
+    st_body = _load_fixture("standings__2026-10-01__2026-10-03.json.gz")
+    stub = b'{"ok": true, "games": []}'
+
+    def exploding_build(**_kwargs):
+        raise ValueError("boom in build_bolts.build")
+
+    monkeypatch.setattr(handler_mod.build_bolts, "build", exploding_build)
+
+    put = FakePut()
+    fetch_fn = _make_fetch(
+        {
+            "schedule/2026-10-01": sched_body,
+            "standings/2026-10-01": st_body,
+            "club-schedule-season/TBL": stub,
+            "club-stats/TBL": stub,
+            "gamecenter/": b'{"ok": true}',
+            "skater/bios": b'{"data":[],"total":0}',
+            "goalie/bios": b'{"data":[],"total":0}',
+            "skater/summary": b'{"data":[],"total":0}',
+            "skater/realtime": b'{"data":[],"total":0}',
+            "skater/faceoffpercentages": b'{"data":[],"total":0}',
+            "team/summary": b'{"data":[],"total":0}',
+        }
+    )
+    with pytest.raises(ValueError, match="boom in build_bolts"):
+        handler({"date": "2026-10-01"}, None, put=put, now=lambda: FIXED_NOW, fetch_fn=fetch_fn)
+
+    keys = [c[0] for c in put.calls]
+    # Manifest was written (fetches all succeeded); bolts and health were NOT.
+    assert any(k.endswith("_manifest.json") for k in keys)
+    assert "data/kiekkokeskus/bolts.json" not in keys
+    assert "data/kiekkokeskus/_health.json" not in keys
+
+
+def test_stats_rest_truncated_marks_manifest_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    """ADR-035 pagination guard: total > len(data) → manifest row errored, run fails."""
+    sched_body = _load_fixture("schedule__2026-10-01__2026-10-03.json.gz")
+    st_body = _load_fixture("standings__2026-10-01__2026-10-03.json.gz")
+    stub = b'{"ok": true, "games": []}'
+    # Truncated skater/summary: 1 row returned but total claims 999
+    truncated = b'{"data":[{"playerId":1}],"total":999}'
+
+    put = FakePut()
+    fetch_fn = _make_fetch(
+        {
+            "schedule/2026-10-01": sched_body,
+            "standings/2026-10-01": st_body,
+            "club-schedule-season/TBL": stub,
+            "club-stats/TBL": stub,
+            "gamecenter/": b'{"ok": true}',
+            "skater/bios": b'{"data":[],"total":0}',
+            "goalie/bios": b'{"data":[],"total":0}',
+            "skater/summary": truncated,
+            "skater/realtime": b'{"data":[],"total":0}',
+            "skater/faceoffpercentages": b'{"data":[],"total":0}',
+            "team/summary": b'{"data":[],"total":0}',
+        }
+    )
+    with pytest.raises(RuntimeError, match="errored requests"):
+        handler({"date": "2026-10-01"}, None, put=put, now=lambda: FIXED_NOW, fetch_fn=fetch_fn)
+
+    manifest = next(json.loads(c[1]) for c in put.calls if c[0].endswith("_manifest.json"))
+    summary_row = next(
+        r for r in manifest["requests"] if r["slug"].startswith("skater-summary-TBL")
+    )
+    assert "total=999" in (summary_row["error"] or "")
+
+    keys = [c[0] for c in put.calls]
+    assert "data/kiekkokeskus/bolts.json" not in keys
+    assert "data/kiekkokeskus/_health.json" not in keys
