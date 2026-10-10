@@ -28,7 +28,8 @@ Tilastokeskus.
    depends on a field's shape, it cites a fetched payload or says "verify in PRP".
 3. **The browser never calls the NHL** (ADR-003).
 4. **Budget is about $0/month.** One run a day, no database, nothing that scales with traffic.
-5. **500-line limit per file, docs included.** Split by module or subject.
+5. **500-line limit on code files** (`src/`, `scripts/`, `infra/`, `site/`, `tests/`). Docs are
+   exempt (ADR-034). Split code by module; split docs by subject when a reader benefits.
 6. **Small working commits**, in conventional format with the spec number: `feat(04): …`.
 
 ## File Naming Conventions

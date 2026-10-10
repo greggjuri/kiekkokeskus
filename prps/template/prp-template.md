@@ -44,7 +44,7 @@ src/kiekkokeskus/parse/{x}.py    # NEW: …
 tests/test_parse_{x}.py          # NEW: …
 tests/fixtures/{…}.json.gz       # NEW: captured real payload
 ```
-Every file stays under 500 lines.
+Code files stay under 500 lines (ADR-034; docs exempt).
 
 ---
 

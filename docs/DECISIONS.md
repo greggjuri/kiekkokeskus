@@ -472,6 +472,28 @@ initials/init-02-infra.md, prps/prp-02-infra.md
 
 ---
 
+## ADR-034: 500-line limit applies to code only, not docs
+
+**Date**: 2026-10-09
+**Status**: Accepted
+
+### Decision
+The 500-line-per-file limit applies to **code**: `src/`, `scripts/`, `infra/`, `site/`, `tests/`
+(and any future code directory). Docs (`*.md` anywhere) are **exempt**. Docs still split by
+subject when it helps a reader — the DECISIONS / DECISIONS-DATA split stays, and future splits
+should follow that rule rather than a line count.
+
+### Rationale
+Earlier PRPs trimmed well-structured ADRs down just to stay under 500 lines, which weakened the
+record. The limit was always about keeping code modules reviewable; docs trade length for
+completeness. The split-by-subject rule already handles docs that genuinely grow unwieldy.
+
+### References
+PROJECT-INSTRUCTIONS.md, CLAUDE.md Rule 4, .claude/commands/{generate,execute}-prp.md,
+prps/template/prp-template.md
+
+---
+
 ## Template for New Decisions
 
 ```markdown

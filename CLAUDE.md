@@ -146,9 +146,11 @@ main site, and the whole of jurigregg.com lives there.
   commit.
 - Current-state JSON is written with `Cache-Control: public, max-age=300` (ADR-022).
 
-### 4. File size
-- **500 lines maximum per file, docs included.** Split by module, or by subject for docs (that's
-  why DECISIONS is two files).
+### 4. File size (code only — ADR-034)
+- **500 lines maximum per code file** (`src/`, `scripts/`, `infra/`, `site/`, `tests/`). Split by
+  module when a file approaches the limit.
+- **Docs are exempt.** Still split by subject when it helps a reader (e.g. the DECISIONS /
+  DECISIONS-DATA split).
 
 ### 5. Commits
 - One working, tested step per commit, in conventional format: `feat:`, `fix:`, `refactor:`,
@@ -251,7 +253,7 @@ ambiguous, ask; don't invent the missing decision.
 - Multiply a fraction by 100 anywhere except the page formatter.
 - Use default AWS credentials implicitly.
 - Contradict an ADR without raising it first.
-- Create files over 500 lines.
+- Create code files over 500 lines (ADR-034; docs exempt).
 - Commit `.venv/`, `cdk.out/`, `node_modules/`, or `out.json`.
 
 ## Reference Documents

@@ -64,7 +64,7 @@ test, and only then the fix.
 - Full suite green: pytest (coverage ≥ 80% on `src/kiekkokeskus/`), infra tests, page tests.
 - Every success criterion checked, with the test or check that proves it.
 - Golden-file diffs reviewed and explained.
-- No file over 500 lines: `wc -l` on everything touched.
+- No code file over 500 lines (ADR-034; docs exempt): `wc -l` on code files touched.
 
 ### Step 5: Update Documentation
 

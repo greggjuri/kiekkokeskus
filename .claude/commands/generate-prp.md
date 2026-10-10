@@ -51,7 +51,7 @@ Never fill a gap from community docs or memory alone.
 
 1. Find the existing modules, fixtures, and tests this builds on.
 2. Check `examples/` for patterns.
-3. List exact files to create or modify, all under 500 lines.
+3. List exact files to create or modify. Code files stay under 500 lines; docs are exempt (ADR-034).
 
 ### Step 6: Write the PRP
 
