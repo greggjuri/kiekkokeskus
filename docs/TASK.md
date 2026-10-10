@@ -3,13 +3,13 @@
 **Spec numbers:** `01`–`09` are reserved by the backlog below. **The next free number for a new,
 unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029).
 
-## Current: Phase 1 → Phase 2 handover
+## Current: Phase 2 Data
 
 ### In Progress
-*(none)*
+- [ ] `init-04-bolts-json` — executing PRP-04
 
 ### Up Next
-- [ ] `init-04-bolts-json` — standings + gaps, last/next games, full skater/goalie rows, special teams
+- [ ] `init-05-leijonat-json` — Finnish players across the NHL, last-night boxscore join
 
 ---
 
@@ -110,7 +110,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-04 (init-02 + init-03 complete; next: init-04)*
+*Last updated: 2026-10-09 (init-04 in progress)*
 
 ---
 
