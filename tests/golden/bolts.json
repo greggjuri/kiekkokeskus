@@ -1,0 +1,684 @@
+{
+  "dataDate": "2026-10-08",
+  "generatedAt": "2026-10-09T14:00:12Z",
+  "goalies": [
+    {
+      "firstName": {
+        "cs": "Andrej",
+        "default": "Andrei",
+        "sk": "Andrej"
+      },
+      "gaa": 2.047005,
+      "gp": 3,
+      "gs": 3,
+      "l": 1,
+      "lastName": {
+        "cs": "Vasilevskij",
+        "default": "Vasilevskiy",
+        "fi": "Vasilevski",
+        "sk": "Vasilevskij"
+      },
+      "otl": 0,
+      "playerId": 8476883,
+      "so": 0,
+      "svPct": 0.9,
+      "toi": 10552,
+      "w": 2
+    },
+    {
+      "firstName": {
+        "default": "Dennis"
+      },
+      "gaa": 2.01286,
+      "gp": 1,
+      "gs": 1,
+      "l": 0,
+      "lastName": {
+        "default": "Hildeby"
+      },
+      "otl": 0,
+      "playerId": 8483710,
+      "so": 0,
+      "svPct": 0.944444,
+      "toi": 3577,
+      "w": 1
+    }
+  ],
+  "lastGame": {
+    "date": "2026-10-08",
+    "decidedIn": "REG",
+    "gameId": 2026020060,
+    "home": true,
+    "oppScore": 2,
+    "opponent": {
+      "abbrev": "MIN",
+      "name": {
+        "default": "Wild"
+      }
+    },
+    "result": "W",
+    "tblScore": 3
+  },
+  "nextGames": [
+    {
+      "date": "2026-10-10",
+      "gameId": 2026020081,
+      "home": false,
+      "opponent": {
+        "abbrev": "NYI",
+        "name": {
+          "default": "Islanders"
+        }
+      },
+      "startTimeUTC": "2026-10-10T23:30:00Z"
+    },
+    {
+      "date": "2026-10-13",
+      "gameId": 2026020095,
+      "home": false,
+      "opponent": {
+        "abbrev": "NYR",
+        "name": {
+          "default": "Rangers"
+        }
+      },
+      "startTimeUTC": "2026-10-13T23:15:00Z"
+    },
+    {
+      "date": "2026-10-15",
+      "gameId": 2026020111,
+      "home": true,
+      "opponent": {
+        "abbrev": "SEA",
+        "name": {
+          "default": "Kraken"
+        }
+      },
+      "startTimeUTC": "2026-10-15T23:00:00Z"
+    }
+  ],
+  "schemaVersion": 1,
+  "season": "20262027",
+  "skaters": [
+    {
+      "a": 0,
+      "blocks": 5,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Ryan"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 1,
+      "lastName": {
+        "default": "McDonagh"
+      },
+      "p": 0,
+      "pim": 2,
+      "playerId": 8474151,
+      "pm": 2,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 1,
+      "toiPerGame": 963
+    },
+    {
+      "a": 2,
+      "blocks": 6,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "John"
+      },
+      "g": 2,
+      "gp": 4,
+      "gwg": 1,
+      "hits": 3,
+      "lastName": {
+        "default": "Carlson"
+      },
+      "p": 4,
+      "pim": 0,
+      "playerId": 8474590,
+      "pm": 0,
+      "positionCode": "D",
+      "ppg": 1,
+      "ppp": 1,
+      "shg": 0,
+      "shootingPct": 0.142857,
+      "sog": 14,
+      "toiPerGame": 1183
+    },
+    {
+      "a": 0,
+      "blocks": 9,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Victor"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 2,
+      "lastName": {
+        "default": "Hedman"
+      },
+      "p": 0,
+      "pim": 0,
+      "playerId": 8475167,
+      "pm": 1,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 4,
+      "toiPerGame": 891
+    },
+    {
+      "a": 5,
+      "blocks": 1,
+      "faceoffPct": 1.0,
+      "firstName": {
+        "default": "Nikita"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 0,
+      "lastName": {
+        "cs": "Ku\u010derov",
+        "default": "Kucherov",
+        "fi": "Kutsherov",
+        "sk": "Ku\u010derov"
+      },
+      "p": 6,
+      "pim": 0,
+      "playerId": 8476453,
+      "pm": 3,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 1,
+      "shg": 0,
+      "shootingPct": 0.166667,
+      "sog": 6,
+      "toiPerGame": 1346
+    },
+    {
+      "a": 1,
+      "blocks": 5,
+      "faceoffPct": 0.47916,
+      "firstName": {
+        "default": "Zemgus"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 13,
+      "lastName": {
+        "default": "Girgensons"
+      },
+      "p": 1,
+      "pim": 2,
+      "playerId": 8476878,
+      "pm": 0,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 2,
+      "toiPerGame": 763
+    },
+    {
+      "a": 3,
+      "blocks": 2,
+      "faceoffPct": 0.56521,
+      "firstName": {
+        "default": "Jake"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 2,
+      "lastName": {
+        "default": "Guentzel"
+      },
+      "p": 4,
+      "pim": 0,
+      "playerId": 8477404,
+      "pm": 2,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 1,
+      "shg": 0,
+      "shootingPct": 0.090909,
+      "sog": 11,
+      "toiPerGame": 1273
+    },
+    {
+      "a": 2,
+      "blocks": 3,
+      "faceoffPct": 0.5,
+      "firstName": {
+        "default": "Brayden"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 0,
+      "lastName": {
+        "default": "Point"
+      },
+      "p": 3,
+      "pim": 2,
+      "playerId": 8478010,
+      "pm": 2,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.111111,
+      "sog": 9,
+      "toiPerGame": 1183
+    },
+    {
+      "a": 1,
+      "blocks": 4,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Erik"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 12,
+      "lastName": {
+        "cs": "\u010cern\u00e1k",
+        "default": "Cernak",
+        "sk": "\u010cern\u00e1k"
+      },
+      "p": 1,
+      "pim": 0,
+      "playerId": 8478416,
+      "pm": 4,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 7,
+      "toiPerGame": 1175
+    },
+    {
+      "a": 0,
+      "blocks": 0,
+      "faceoffPct": 0.0,
+      "firstName": {
+        "default": "Jansen"
+      },
+      "g": 0,
+      "gp": 1,
+      "gwg": 0,
+      "hits": 5,
+      "lastName": {
+        "default": "Harkins"
+      },
+      "p": 0,
+      "pim": 0,
+      "playerId": 8478424,
+      "pm": -1,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 1,
+      "toiPerGame": 655
+    },
+    {
+      "a": 0,
+      "blocks": 4,
+      "faceoffPct": 0.49295,
+      "firstName": {
+        "default": "Anthony"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 3,
+      "lastName": {
+        "default": "Cirelli"
+      },
+      "p": 1,
+      "pim": 2,
+      "playerId": 8478519,
+      "pm": 2,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.111111,
+      "sog": 9,
+      "toiPerGame": 1103
+    },
+    {
+      "a": 3,
+      "blocks": 2,
+      "faceoffPct": 0.33333,
+      "firstName": {
+        "default": "Brandon"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 1,
+      "lastName": {
+        "default": "Hagel"
+      },
+      "p": 4,
+      "pim": 2,
+      "playerId": 8479542,
+      "pm": 2,
+      "positionCode": "L",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.05,
+      "sog": 20,
+      "toiPerGame": 1333
+    },
+    {
+      "a": 0,
+      "blocks": 1,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Jeffrey"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 14,
+      "lastName": {
+        "default": "Viel"
+      },
+      "p": 0,
+      "pim": 7,
+      "playerId": 8479705,
+      "pm": -3,
+      "positionCode": "L",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 6,
+      "toiPerGame": 503
+    },
+    {
+      "a": 0,
+      "blocks": 5,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Charle-Edouard"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 4,
+      "lastName": {
+        "default": "D'Astous"
+      },
+      "p": 1,
+      "pim": 2,
+      "playerId": 8480426,
+      "pm": -1,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.166667,
+      "sog": 6,
+      "toiPerGame": 898
+    },
+    {
+      "a": 1,
+      "blocks": 1,
+      "faceoffPct": 0.33333,
+      "firstName": {
+        "default": "Pontus"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 1,
+      "hits": 2,
+      "lastName": {
+        "default": "Holmberg"
+      },
+      "p": 2,
+      "pim": 4,
+      "playerId": 8480995,
+      "pm": 0,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.142857,
+      "sog": 7,
+      "toiPerGame": 862
+    },
+    {
+      "a": 2,
+      "blocks": 2,
+      "faceoffPct": null,
+      "firstName": {
+        "cs": "Ilja",
+        "default": "Ilya",
+        "fi": "Ilja",
+        "sk": "I\u013eja"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 6,
+      "lastName": {
+        "cs": "Michejev",
+        "default": "Mikheyev",
+        "fi": "Mihejev",
+        "sk": "Michejev"
+      },
+      "p": 3,
+      "pim": 0,
+      "playerId": 8481624,
+      "pm": 0,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.2,
+      "sog": 5,
+      "toiPerGame": 851
+    },
+    {
+      "a": 0,
+      "blocks": 5,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Max"
+      },
+      "g": 0,
+      "gp": 2,
+      "gwg": 0,
+      "hits": 4,
+      "lastName": {
+        "default": "Crozier"
+      },
+      "p": 0,
+      "pim": 2,
+      "playerId": 8481719,
+      "pm": -1,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 4,
+      "toiPerGame": 1093
+    },
+    {
+      "a": 0,
+      "blocks": 0,
+      "faceoffPct": 0.0,
+      "firstName": {
+        "default": "Gage"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 4,
+      "lastName": {
+        "default": "Goncalves"
+      },
+      "p": 0,
+      "pim": 0,
+      "playerId": 8482201,
+      "pm": 0,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 2,
+      "toiPerGame": 905
+    },
+    {
+      "a": 0,
+      "blocks": 6,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "J.J."
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 2,
+      "lastName": {
+        "default": "Moser"
+      },
+      "p": 0,
+      "pim": 4,
+      "playerId": 8482655,
+      "pm": 2,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 3,
+      "toiPerGame": 970
+    },
+    {
+      "a": 0,
+      "blocks": 0,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Emil"
+      },
+      "g": 0,
+      "gp": 1,
+      "gwg": 0,
+      "hits": 3,
+      "lastName": {
+        "default": "Lilleberg"
+      },
+      "p": 0,
+      "pim": 5,
+      "playerId": 8482929,
+      "pm": 0,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 1,
+      "toiPerGame": 630
+    },
+    {
+      "a": 0,
+      "blocks": 0,
+      "faceoffPct": 0.37037,
+      "firstName": {
+        "default": "Conor"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 1,
+      "hits": 7,
+      "lastName": {
+        "default": "Geekie"
+      },
+      "p": 1,
+      "pim": 0,
+      "playerId": 8483447,
+      "pm": 0,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "shg": 0,
+      "shootingPct": 0.142857,
+      "sog": 7,
+      "toiPerGame": 659
+    }
+  ],
+  "specialTeams": {
+    "pkPct": 0.777778,
+    "pkRank": 19,
+    "ppPct": 0.0625,
+    "ppRank": 30
+  },
+  "standing": {
+    "conference": {
+      "abbrev": "E",
+      "rank": 4
+    },
+    "division": {
+      "abbrev": "A",
+      "rank": 2
+    },
+    "divisionLead": {
+      "gamesInHand": 0,
+      "gap": 0,
+      "leader": "OTT",
+      "leaderPts": 6
+    },
+    "ga": 9,
+    "gf": 11,
+    "gp": 4,
+    "l": 1,
+    "leagueRank": 8,
+    "otl": 0,
+    "playoffLine": {
+      "gamesInHand": 0,
+      "gap": 2,
+      "inPosition": true,
+      "team": "NYI",
+      "teamPts": 4
+    },
+    "pointPct": 0.75,
+    "pts": 6,
+    "streak": {
+      "code": "W",
+      "count": 3
+    },
+    "w": 3
+  },
+  "team": {
+    "abbrev": "TBL",
+    "name": {
+      "default": "Tampa Bay Lightning",
+      "fr": "Lightning de Tampa Bay"
+    }
+  }
+}
