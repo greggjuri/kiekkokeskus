@@ -136,6 +136,11 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
             "gamecenter/": b'{"ok": true}',  # catches the other 7 boxscores
             "skater/bios": skaters_body,
             "goalie/bios": goalies_body,
+            # stats REST (PRP-04 Step 2) — stubs; builder covered by later tests
+            "skater/summary": b'{"data":[],"total":0}',
+            "skater/realtime": b'{"data":[],"total":0}',
+            "skater/faceoffpercentages": b'{"data":[],"total":0}',
+            "team/summary": b'{"data":[],"total":0}',
         }
     )
 
@@ -154,17 +159,21 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     non_raw = [k for k in keys if not k.startswith("data/kiekkokeskus/raw/")]
     assert non_raw == ["data/kiekkokeskus/_health.json"]
 
-    # 2 (schedule+standings) + 2 (club x2) + 8 (boxscores) + 1 (skater) + 1 (goalie) = 14
+    # 2 (schedule+standings) + 2 (club) + 8 (boxscores) + 2 (bios) + 4 (stats REST) = 18
     raw_keys = [
         k
         for k in keys
         if k.startswith("data/kiekkokeskus/raw/") and not k.endswith("_manifest.json")
     ]
-    assert len(raw_keys) == 14
+    assert len(raw_keys) == 18
     assert any(k.endswith("schedule__2026-10-01.json.gz") for k in raw_keys)
     assert any(k.endswith("standings__2026-10-01.json.gz") for k in raw_keys)
     assert any("boxscore__2026020010" in k for k in raw_keys)
     assert sum(1 for k in raw_keys if "boxscore__" in k) == 8
+    assert any("skater-summary-TBL" in k for k in raw_keys)
+    assert any("skater-realtime-TBL" in k for k in raw_keys)
+    assert any("skater-faceoff-TBL" in k for k in raw_keys)
+    assert any("team-summary" in k for k in raw_keys)
 
     # Raw objects are gzipped and advertise it
     sched_call = next(c for c in put.calls if c[0].endswith("schedule__2026-10-01.json.gz"))
@@ -188,7 +197,7 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     assert health["schemaVersion"] == 1
     assert health["trigger"] == "schedule"
     assert health["dataDate"] == "2026-10-01"
-    assert health["rawCount"] == 14
+    assert health["rawCount"] == 18
     assert health["version"] == __version__
 
 
@@ -217,6 +226,10 @@ def test_season_fallback_via_standings_when_schedule_empty_for_data_date() -> No
             "club-stats/TBL": stub,
             "skater/bios": b'{"data":[],"total":0}',
             "goalie/bios": b'{"data":[],"total":0}',
+            "skater/summary": b'{"data":[],"total":0}',
+            "skater/realtime": b'{"data":[],"total":0}',
+            "skater/faceoffpercentages": b'{"data":[],"total":0}',
+            "team/summary": b'{"data":[],"total":0}',
         }
     )
     result = handler(

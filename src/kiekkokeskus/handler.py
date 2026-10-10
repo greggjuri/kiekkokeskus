@@ -281,6 +281,32 @@ def handler(
             start += n
             page += 1
 
+    # Step 6: stats REST — TBL-scoped skater reports + league-wide team summary.
+    # Single-page fetches with limit=1000. Pagination guard (ADR-035) lands in Step 3.
+    for slug_prefix, url_fn in (
+        ("skater-summary-TBL", nhl.url_skater_summary),
+        ("skater-realtime-TBL", nhl.url_skater_realtime),
+        ("skater-faceoff-TBL", nhl.url_skater_faceoff),
+    ):
+        _fetch_and_archive(
+            put=put,
+            now=now,
+            run_date=run_date,
+            slug=f"{slug_prefix}__{season}",
+            url=url_fn(season),
+            requests=manifest.requests,
+            fetch_fn=fetch_fn,
+        )
+    _fetch_and_archive(
+        put=put,
+        now=now,
+        run_date=run_date,
+        slug=f"team-summary__{season}",
+        url=nhl.url_team_summary(season),
+        requests=manifest.requests,
+        fetch_fn=fetch_fn,
+    )
+
     # Fail loudly if any request errored
     had_error = any(req.error for req in manifest.requests)
     raw_count = sum(1 for req in manifest.requests if req.error is None and req.status == 200)

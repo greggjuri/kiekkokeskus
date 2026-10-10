@@ -110,6 +110,49 @@ def url_goalie_bios(season: str, start: int = 0, limit: int = 1000) -> str:
     return _bios_url("goalie/bios", season, start, limit)
 
 
+def _stats_rest_team_url(path: str, season: str, team: str, start: int, limit: int) -> str:
+    """Stats REST team-filtered URL builder (ADR-035 team-scoped sources)."""
+    from urllib.parse import urlencode
+
+    qs = urlencode(
+        {
+            "cayenneExp": f'gameTypeId=2 and teamAbbrevs="{team}" and seasonId={season}',
+            "limit": str(limit),
+            "start": str(start),
+        }
+    )
+    return _assert_no_now(f"{_STATS}/{path}?{qs}")
+
+
+def url_skater_summary(season: str, team: str = "TBL", *, start: int = 0, limit: int = 1000) -> str:  # noqa: E501
+    return _stats_rest_team_url("skater/summary", season, team, start, limit)
+
+
+def url_skater_realtime(
+    season: str, team: str = "TBL", *, start: int = 0, limit: int = 1000
+) -> str:  # noqa: E501
+    return _stats_rest_team_url("skater/realtime", season, team, start, limit)
+
+
+def url_skater_faceoff(season: str, team: str = "TBL", *, start: int = 0, limit: int = 1000) -> str:  # noqa: E501
+    """ADR-035: `totalFaceoffs` lives here; needed to distinguish 'took none' from 'won 0 %'."""
+    return _stats_rest_team_url("skater/faceoffpercentages", season, team, start, limit)
+
+
+def url_team_summary(season: str, *, start: int = 0, limit: int = 1000) -> str:
+    """All 32 teams. Used for PP%/PK% league ranks (ADR-036)."""
+    from urllib.parse import urlencode
+
+    qs = urlencode(
+        {
+            "cayenneExp": f"gameTypeId=2 and seasonId={season}",
+            "limit": str(limit),
+            "start": str(start),
+        }
+    )
+    return _assert_no_now(f"{_STATS}/team/summary?{qs}")
+
+
 # --- Fetch -------------------------------------------------------------------
 
 Opener = Callable[[urllib.request.Request, float], Any]
