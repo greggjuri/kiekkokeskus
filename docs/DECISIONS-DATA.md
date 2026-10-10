@@ -57,7 +57,7 @@ Boxscores carry no nationality.
 4. Walk `playerByGameStats.{awayTeam,homeTeam}.{forwards,defense,goalies}`.
 5. Join on `playerId` against the ADR-011 set.
 
-Example: Eetu Tolvanen (NYR) scored 2026-10-01 against TBL. That game appears on both pages.
+Example: Eeli Tolvanen (NYR) scored 2026-10-01 against TBL. That game appears on both pages.
 
 ---
 
