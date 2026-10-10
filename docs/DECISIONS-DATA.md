@@ -199,6 +199,119 @@ required by the collector, so no extra request.
 ### References
 init-03-collector-core.md, prps/prp-03-collector-core.md
 
+---
+
+## ADR-035: Field sources for `bolts.json`
+
+**Date**: 2026-10-09
+**Status**: Accepted
+
+### Context
+`bolts.json` composes a single page view from multiple NHL endpoints. We fix the source of every
+field once so future PRPs don't have to re-decide, and so init-05 can reuse the same parsers.
+
+### Decision — source map
+
+| Section / field | Source payload | Field |
+|---|---|---|
+| `team.abbrev` | constant | `"TBL"` |
+| `team.name` | standings | row `teamName` (localized) |
+| `standing.{gp,w,l,otl,pts,gf,ga}` | standings | TBL row integers |
+| `standing.pointPct` | standings | `pointPctg` (fraction 0–1 or `null` at 0 GP, ADR-015) |
+| `standing.streak` | standings | `{code, count}` from `streakCode`/`streakCount`; `null` at 0 GP |
+| `standing.{division,conference}` | standings | `{abbrev, rank}` from `*Abbrev` + `*Sequence` |
+| `standing.leagueRank` | standings | `leagueSequence` |
+| `standing.divisionLead` | standings | ADR-036 definition |
+| `standing.playoffLine` | standings | ADR-036 definition |
+| `lastGame.*` | club-schedule-season | last game with `gameType==2` and `gameState∈{OFF,FINAL}` and `date≤dataDate`; `decidedIn` from `gameOutcome.lastPeriodType` |
+| `nextGames[]` | club-schedule-season | first 3 games with `gameType==2` and `date>dataDate`, ascending |
+| `specialTeams.ppPct`/`pkPct` | team-summary | `powerPlayPct`/`penaltyKillPct` (fractions 0–1) |
+| `specialTeams.ppRank`/`pkRank` | team-summary | standard competition ranking (1-2-2-4) over teams with `gp>0`, 1=best |
+| skater integers (`gp,g,a,p,pm,pim,sog,ppg,shg,gwg`) | club-stats | passed through |
+| `shootingPct` | club-stats | `shootingPctg` (`null` when `shots==0`, ADR-015) |
+| `toiPerGame` | club-stats | `avgTimeOnIcePerGame` → int seconds (ADR-017) |
+| `ppp` | stats REST `skater/summary` | `ppPoints`; `null` when the player is missing from summary |
+| `hits`, `blocks` | stats REST `skater/realtime` | `hits`, `blockedShots`; `null` when missing |
+| `faceoffPct` | stats REST `skater/faceoffpercentages` | **`null` when `totalFaceoffs == 0`**, else `faceoffWinPct` |
+| goalie integers (`gp,gs,w,l,otl,so`) | club-stats | `overtimeLosses` → `otl` |
+| `svPct`, `gaa`, `toi` | club-stats | `savePercentage`, `goalsAgainstAverage`, `timeOnIce` (int total seconds, ADR-017). `null` for goalies who faced no shots (ADR-015). |
+
+### Faceoff rule
+`skater/faceoffpercentages` carries `totalFaceoffs` (attempts). This is the only field that
+distinguishes "took no faceoffs" from "won 0 %". **Rule**: `faceoffPct = null` when
+`totalFaceoffs == 0`; else `faceoffWinPct` as-is (fraction 0–1).
+**Fallback** (if the endpoint disappears): `null` when `positionCode == 'D'` OR
+`faceoffWinPctg == 0.0`.
+
+### Traded players (asymmetry)
+club-stats returns **TBL-only** stats for every TBL skater. The three TBL-filtered stats REST
+endpoints (summary/realtime/faceoff) may include **other-team season totals** for a player who
+played elsewhere earlier in the season — the `teamAbbrevs` filter chooses rows, not stat
+subsets. On 2026-10-09 there were no mid-season trades to confirm this against. **Re-verify at
+first TBL trade** (TASK.md Known Issue).
+
+### Join resilience
+`club_stats.skaters(...)` is authoritative on the row set. A player missing from any stats REST
+side keeps the row, with `ppp`/`hits`/`blocks`/`faceoffPct` as `null`. Never drop a row.
+
+### Pagination guard
+`stats_rest.check_complete(payload, slug)` raises `StatsRestTruncated` when
+`total > len(data)`. Called after each stats REST fetch. The TBL roster (~20) and 32-team
+league are well under `limit=1000`; the guard fails loudly if NHL ever returns a partial page.
+
+### Dropped fields
+- `headshot`, `teamLogo`, `teamLogoDark`: ADR-003 (browser never calls NHL hosts).
+- Goal scorers for the last game: needs the game's `landing`/play-by-play; deferred.
+
+### References
+init-04-bolts-json.md, prps/prp-04-bolts-json.md
+
+---
+
+## ADR-036: Standings definitions for `bolts.json`
+
+**Date**: 2026-10-09
+**Status**: Accepted
+
+### Decision
+
+**Division lead** (`standing.divisionLead`): the team with `divisionSequence == 1` in TBL's
+division. Fields:
+- `leader`: that team's `teamAbbrev.default` (equal to `"TBL"` when TBL leads).
+- `leaderPts`: that team's `points`.
+- `gap`: `leaderPts - TBL.pts`. **Signed int.** `0` when TBL leads by tiebreaker with equal
+  points. **Never `abs()`-ed.**
+- `gamesInHand`: `leaderGP - TBL.gp`. Negative when TBL has played more.
+
+**Playoff line** (`standing.playoffLine`): depends on whether TBL holds a playoff position.
+- *In position* (`divisionSequence ≤ 3` OR `wildcardSequence ∈ {1, 2}`): reference team is the
+  conference's `wildcardSequence == 3` team.
+  - `inPosition: true`
+  - `gap = TBL.pts - reference.pts`. Signed; positive = cushion.
+- *Out of position*: reference team is the conference's `wildcardSequence == 2` team.
+  - `inPosition: false`
+  - `gap = reference.pts - TBL.pts`. Signed; positive = deficit.
+- Either case: `gamesInHand = reference.gp - TBL.gp`. **Signed; never `abs()`-ed.**
+
+**Both `gap` values can be `≤ 0`** when standings order comes from tiebreakers (equal points
+but the other team ranks higher by a tiebreaker, or TBL ranks higher despite trailing on points).
+Preserve the sign; the page renders a signed `+N / 0 / -N` string.
+
+### Observed 2026-10-09
+Across all four divisions, `divisionSequence ∈ {1, 2, 3}` → `wildcardSequence == 0`;
+`divisionSequence ∈ {4, ...}` → `wildcardSequence ∈ {1, 2, 3, ...}`. TBL (Atlantic #2) today has
+`divisionLead.gap = 0, gamesInHand = 0` behind OTT; `playoffLine.inPosition = true` with
+reference NYI (`wildcardSequence == 3`), `gap = +2` cushion.
+
+**Special-teams ranks** (`specialTeams.ppRank`/`pkRank`): standard competition ranking
+(1-2-2-4) over teams with `gamesPlayed > 0`. Rank 1 = best. Ties share a rank; the next rank
+skips.
+
+### References
+init-04-bolts-json.md, prps/prp-04-bolts-json.md
+
+---
+
 These are not decisions. They give the first fixtures context.
 - Season `20262027` started 2026-10-01.
 - TBL is 0-1-0 after losing 5-1 at NYR, and sits 30th in the league.

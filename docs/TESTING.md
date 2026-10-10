@@ -81,6 +81,12 @@ Each row is at least one test. Add a row when DECISIONS-DATA gains an ADR.
 | 017 | TOI formats | club-stats (float s) + boxscore (`"MM:SS"`) | both → same integer seconds |
 | 018 | localized names | row with `fi` key (Kucherov) + row with only `default` | object passed through untouched |
 | 030 | full rows + position | club-stats / bios | every player emitted with `positionCode`; no top-N cut |
+| 035 | join resilience when a stats REST side is missing a player | `skater-realtime-...__player-missing` | row kept from club-stats; `hits`/`blocks`/`ppp`/`faceoffPct` → `null` |
+| 035 | faceoffPct rule — "took none" vs "won 0 %" | `skater-faceoff-TBL__...` with a D-position player | `faceoffPct = null when totalFaceoffs == 0`; else fraction 0–1 |
+| 035 | pagination guard | synthetic `{data: 1 row, total: 999}` | `stats_rest.check_complete` raises; manifest row errored; run fails |
+| 036 | playoff line — in-position reference is wildcard 3 | real standings with TBL in Atlantic top-3 | reference team is conference `wildcardSequence==3` |
+| 036 | playoff line — out-of-position reference is wildcard 2 | synthetic standings | reference team is conference `wildcardSequence==2` |
+| 036 | gap sign preserved | synthetic standings with equal points / tiebreaker ordering | `gap` can be 0 or negative; never `abs()`-ed |
 
 ### Date and Time Boundaries
 Logic takes "now" as a parameter and never reads the clock (CLAUDE.md conventions). Test:

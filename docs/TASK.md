@@ -6,7 +6,7 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 2 Data
 
 ### In Progress
-- [ ] `init-04-bolts-json` — executing PRP-04
+*(none)*
 
 ### Up Next
 - [ ] `init-05-leijonat-json` — Finnish players across the NHL, last-night boxscore join
@@ -14,6 +14,12 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ---
 
 ## Recently Completed
+
+### init-04-bolts-json (2026-10-09)
+- [x] 4 new endpoints (summary/realtime/faceoff/team-summary) + 4 parsers + build phase +
+      golden `bolts.json`. Live spot-check against NHL.com matched. ADR-035 (field sources,
+      faceoff rule, pagination guard, traded-player asymmetry) and ADR-036 (signed gaps,
+      playoff-line definition, PP%/PK% ranks) added (PRP-04)
 
 ### init-03-collector-core (2026-10-04)
 - [x] Dates, fetch+retry, raw+manifest, orchestration. 11-request archive on manual invoke;
@@ -86,11 +92,9 @@ whichever phase it belongs to.
 ## Open Questions
 
 Each one is settled in the spec named. When it's settled, record it as an ADR and delete it here.
-- **Hits and blocks source**: unverified; expected from stats REST `realtime` (init-04, ADR-030)
 - **Chart rendering**: hand-rolled SVG vs. a single vendored library (init-09)
 - **FI save % format**: `,915` vs `91,5 %` (init-06)
 - **`raw/` publicly served**: accepted for now (ADR-020); revisit only if it matters
-- **Traded players**: how bios/club-stats represent them (init-04/05, TESTING watch list)
 - **Off-season gap**: PRP-03 falls back to `standings[0].seasonId` when schedule has no games on
   `dataDate`, so short in-season gaps don't alarm. **True off-season** (both schedule *and*
   standings return no useful fields) still fails loudly — do we want the collector paused during
@@ -101,6 +105,11 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 - Main site repo needs the same "no `--delete` at bucket root" rule in its CLAUDE.md (ADR-024).
   Owner: Juri.
+- **Traded players (ADR-035)**: `ppp`/`hits`/`blocks`/`faceoffPct` come from `teamAbbrevs`-filtered
+  stats REST endpoints and may include **other-team season totals** for a player who played
+  elsewhere earlier in the season, while club-stats columns are TBL-only. No mid-season trade
+  has occurred yet to confirm; **re-verify at the first TBL trade** and, if confirmed, either
+  switch to club-stats fallbacks for those fields or document the asymmetry on the page.
 
 ## Notes
 
@@ -110,7 +119,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-09 (init-04 in progress)*
+*Last updated: 2026-10-10 (init-04 complete; next: init-05)*
 
 ---
 

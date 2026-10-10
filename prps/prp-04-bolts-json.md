@@ -2,7 +2,7 @@
 
 **Created**: 2026-10-09
 **Initial**: `initials/init-04-bolts-json.md`
-**Status**: Ready
+**Status**: Complete
 **ADRs**: ADR-003, 006, 008/033, 012–018, 020, 022, 030, 032, 034; **adds ADR-035** (field sources for `bolts.json`), **ADR-036** (standings definitions) — both in `docs/DECISIONS-DATA.md`
 
 ---

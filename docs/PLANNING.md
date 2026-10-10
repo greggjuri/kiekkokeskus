@@ -95,7 +95,7 @@ This is the project's only "API". Pages read these paths and nothing else.
 
 | Path | Writer | Cache-Control | Purpose |
 |------|--------|---------------|---------|
-| `/data/kiekkokeskus/bolts.json` | Lambda | `max-age=300` | current /bolts state |
+| `/data/kiekkokeskus/bolts.json` | Lambda | `max-age=300` | current /bolts state; fields per ADR-035/036 |
 | `/data/kiekkokeskus/leijonat.json` | Lambda | `max-age=300` | current /leijonat state |
 | `/data/kiekkokeskus/history/YYYY-MM-DD/{bolts,leijonat}.json` | Lambda | long, immutable | trend charts |
 | `/data/kiekkokeskus/history/index.json` | Lambda | `max-age=300` | list of available dates |
