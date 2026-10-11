@@ -99,6 +99,23 @@ Each row is at least one test. Add a row when DECISIONS-DATA gains an ADR.
 | 037 | two independent builders — leijonat fails | mock `build_leijonat.build` raises | `bolts.json` written; `leijonat.json` + `_health.json` not; raises |
 | 037 | bios duplicate playerId | 2-page split with repeated row | `BiosDuplicateError` raised; no silent dedupe (ADR-011) |
 
+#### Page logic (Layer 5, ADR-038 unless noted)
+
+| ADR | Gotcha | Fixture / input | Assert |
+|---|---|---|---|
+| 015 | null in any column | golden `faceoffPct: null` (bolts McDonagh) | renders `–` (U+2013); sorts last in asc and desc |
+| 018 | partial FI name — `lastName.fi` only | golden Vasilevskiy (`firstName.default` only + `lastName.{default, fi, cs, sk}`) | FI: `Andrei Vasilevski`; EN: `Andrei Vasilevskiy` |
+| 018 | extra name languages | golden Teräväinen (`cs`/`sk`/`sv` keys) | passed through untouched; no crash |
+| 028 | missing i18n key | every EN key present in FI and reverse | strict parity, failing with the diff list |
+| 038 | FI minus and NBSP | `signed(-1, {en,fi})`, `pct1Sign(0.143, 'fi')` | U+2212 in both langs; FI pct has NBSP U+00A0 between `3` and `%` |
+| 038 | `pct1` ×100 (not raw fraction) | `pct1(0.143, {en,fi})` | EN `14.3`, FI `14,3` (never `0.1`/`0,1`) |
+| 038 | `rate3` edges | `0.9`, `1.0`, `0.0` | EN `.900/1.000/.000`; FI `90,00/100,00/0,00` (exact strings, no trailing `%`/NBSP) |
+| 038 | goalie season TOI | `toi(10552, {en,fi})` | EN `175:52`, FI `175.52` |
+| 038 | date west of UTC | child `node` with `TZ=America/Los_Angeles` calls `date('2026-10-02','en')` | `Oct 2, 2026` (not `Oct 1`); UTC-noon parse holds |
+| 038 | gameTime day rollover | child `node` with `TZ=Europe/Helsinki`, input `2026-10-10T23:30:00Z` | FI matches `/^su 11\.10\. klo 02\.30/u` (whole reason gameTime uses viewer tz) |
+| 038 | stale boundary | `isStale(gen, gen ± 36h)` | false at 35h59m, true at 36h01m, false at exactly 36h00m |
+| 038 | schema mismatch | stub `fetchFn` returns `{ schemaVersion: 2 }` | `{ ok: false, reason: 'schema' }`, no throw |
+
 ### Date and Time Boundaries
 Logic takes "now" as a parameter and never reads the clock (CLAUDE.md conventions). Test:
 - "Yesterday" in ET when the run time is just after midnight UTC, which is still the previous day

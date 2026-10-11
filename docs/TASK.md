@@ -6,7 +6,7 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 3
 
 ### In Progress
-- [ ] `init-06-shared-ui` — i18n, formatters, base CSS, disclaimer, stale banner (PRP-06)
+*(none)*
 
 ### Up Next
 - [ ] `init-07-bolts-page` (Phase 3)
@@ -14,6 +14,20 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ---
 
 ## Recently Completed
+
+### init-06-shared-ui (2026-10-11)
+- [x] 10 framework-free ES modules under `site/kiekkokeskus/` + `kk.css` + dev harness +
+      `scripts/preview.py`. Node 22's built-in test runner covers every gotcha row (strings
+      parity, partial-FI name, rate3/pct1 ×100, FI minus+NBSP, UTC-noon date parse,
+      gameTime day rollover, nulls-last sort, URL round-trip, schema mismatch,
+      35h59/36h01 stale boundary). `scripts/deploy.py:page_sync()` wired for the
+      `kiekkokeskus/` prefix with `--delete` scoped, `*.test.js`/`_dev/*`/`package.json`
+      excluded, and `--cache-control: public, max-age=300`. Smoke now hits `kk.css` and
+      `i18n.js`; CI runs Layer 5 (`node --test`). Live deploy: 10 objects, 35.9 KiB,
+      content-type correct natively (no second-pass needed). ADR-038 (EN/FI display
+      conventions) and ADR-039 (shared-asset deploy + Cache-Control) added. Mid-execution
+      fix for mobile header overflow (`minmax(0, 1fr)` on `.kk-header`) and harness
+      `langExplicit` propagation (PRP-06)
 
 ### init-05-leijonat-json (2026-10-10)
 - [x] 4 FIN stats REST endpoints + 2 isRookie filter fetches + 18-team club-stats fan-out for
@@ -102,7 +116,6 @@ whichever phase it belongs to.
 
 Each one is settled in the spec named. When it's settled, record it as an ADR and delete it here.
 - **Chart rendering**: hand-rolled SVG vs. a single vendored library (init-09)
-- **FI save % format**: `,915` vs `91,5 %` (init-06)
 - **`raw/` publicly served**: accepted for now (ADR-020); revisit only if it matters
 - **Off-season gap**: PRP-03 falls back to `standings[0].seasonId` when schedule has no games on
   `dataDate`, so short in-season gaps don't alarm. **True off-season** (both schedule *and*
@@ -134,7 +147,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-10 (init-04 + init-05 complete; next: init-06)*
+*Last updated: 2026-10-11 (init-06 complete; next: init-07)*
 
 ---
 

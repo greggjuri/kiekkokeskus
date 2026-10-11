@@ -494,6 +494,92 @@ prps/template/prp-template.md
 
 ---
 
+## ADR-038: Stat display conventions (EN/FI)
+
+**Date**: 2026-10-11
+**Status**: Accepted (settles the TASK.md "FI save % format" Open Question)
+
+### Decision
+- FI follows liiga.fi, EN follows NHL.com. Evidence: liiga.fi player and goalie tables and its
+  glossary (`/fi/tilastot/sanasto`), read 2026-10-11. Liiga shows `T%` as `95,68`, `KA` as
+  `1,06`, `L%` as `14,3`, and time on ice as `18.18`.
+- Save % and point %: EN `.915`, FI `91,57` (a percentage with two decimals and no sign).
+  Neither of the earlier candidates (`,915` or `91,5 %`) is what Finnish readers see on Liiga.
+- Shooting %, faceoff %, PP%, PK% in tables: one decimal, no `%` in the cell, in both
+  languages. The `%` appears only in headers and in standalone tiles (`14,3 %` with NBSP
+  U+00A0 in FI).
+- TOI: EN `MM:SS`, FI `MM.SS`.
+- Minus is **U+2212 MINUS SIGN** in both languages. Intl's `fi-FI` emits U+2212 naturally;
+  `en-US` emits U+002D hyphen-minus, so the formatter normalizes EN. Null is `–` (U+2013).
+- FI abbreviations: from the Liiga glossary (`O`, `PO`, `M`, `S`, `P`, `R`, `L`, `L%`, `YV`,
+  `YVP`, `AV`, `VM`, `A%`, `V`, `H`, `T%`, `KA`, `NP`, `Aika`, `PP`, positions `KH`/`VL`/`OL`/
+  `P`/`MV`). Ours, because Liiga has no equivalent: `Aika/O`, `TAK`, `BL`, `AK`, `JH`.
+- Watch-outs from the glossary: `T` is **ties** in Liiga, not losses (losses are `H`); `PO` is
+  games actually played by a goalie, which matches the NHL's goalie GP, while `O` counts
+  lineup appearances.
+- URL sort values are JSON field names (`sort=toiPerGame`, `gsort=svPct`), not display
+  abbreviations. ADR-030's `sort=toi` example reads as `toiPerGame` for skaters.
+
+### Verified live 2026-10-11
+Harness + Node Intl: `signed(-1, 'en')` → `−1` (U+2212), `signed(-1, 'fi')` → `−1` (U+2212);
+`rate3(0.9157, 'en')` → `.916`, `rate3(0.9157, 'fi')` → `91,57`; `pct1(0.143, {en,fi})` → `14.3`
+/ `14,3`; `toi(10552, {en,fi})` → `175:52` / `175.52`; `date('2026-10-02', en)` under
+`TZ=America/Los_Angeles` → `Oct 2, 2026` (UTC-noon parse holds west of UTC); `gameTime('2026-10-10T23:30:00Z', 'fi')`
+under `TZ=Europe/Helsinki` → `su 11.10. klo 02.30` (day rolls over for Finnish viewer — the
+whole reason `gameTime` uses the viewer's timezone).
+
+### Consequences
+**Positive:** each language matches the format its readers already know; sorting uses raw
+values so precision choice doesn't affect order.
+**Negative:** FI and EN show different precision for save % (`91,57` vs `.915`). Accepted.
+
+### References
+initials/init-06-shared-ui.md, prps/prp-06-shared-ui.md, site/kiekkokeskus/format.js,
+site/kiekkokeskus/columns.js
+
+---
+
+## ADR-039: Shared page assets deploy with their own Cache-Control
+
+**Date**: 2026-10-11
+**Status**: Accepted
+
+### Context
+Site objects without `Cache-Control` get the distribution's **legacy** `DefaultTTL=3600`
+(ADR-022 verified note). A JS fix would take up to an hour to reach visitors, and module files
+can go out of sync with each other during that window (one new, one old) because they are
+loaded independently.
+
+### Decision
+`scripts/deploy.py:page_sync()` syncs `site/kiekkokeskus/` to `s3://jurigregg-static-site/kiekkokeskus/`
+with `--cache-control "public, max-age=300"` and a prefix-scoped `--delete`. Three excludes keep
+tests, the dev harness, and any `package.json` marker out of the deploy: `*.test.js`, `_dev/*`,
+`package.json`. Page HTML (init-07/08) uses the same header. **No cache-busting query strings
+and no invalidations.**
+
+The call reuses `_subprocess_env()` so `AWS_PROFILE=default` (ADR-025) and the Node 22 PATH
+prefix are set the same way `cdk_diff` / `cdk_deploy` do — one place to change if any of those
+move.
+
+### Verified live 2026-10-11
+First deploy: 10 objects uploaded to `kiekkokeskus/`, 0 deletes, 35.9 KiB total; `curl -sI`
+confirmed `cache-control: public, max-age=300` and the right `content-type` for both `kk.css`
+(`text/css`) and `i18n.js` (`text/javascript`) through CloudFront. AWS CLI v2's native mime map
+delivered both correctly — no `--content-type` second-pass was needed (spec Verify item 2
+resolved).
+
+### Consequences
+**Positive:** a deploy is fully visible within about 5 minutes. One place sets the header.
+**Negative:** a visitor inside that 5-minute window might get a mixed set of old and new
+modules. Accepted for a personal site; revisit only if a deploy ever breaks a page for that
+window.
+
+### References
+initials/init-06-shared-ui.md, prps/prp-06-shared-ui.md, scripts/deploy.py,
+tests/test_deploy_shared.py, ADR-022, ADR-024
+
+---
+
 ## Template for New Decisions
 
 ```markdown

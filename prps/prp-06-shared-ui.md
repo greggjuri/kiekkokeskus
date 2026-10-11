@@ -2,7 +2,7 @@
 
 **Created**: 2026-10-11
 **Initial**: `initials/init-06-shared-ui.md`
-**Status**: Ready
+**Status**: Complete
 **ADRs relied on**: ADR-002, 003, 015–018, 020–022, 024, 028, 030, 034, 035, 037
 **New ADRs this PRP adds**: ADR-038 (stat display conventions, EN/FI) and ADR-039 (shared assets deploy + Cache-Control), both in `docs/DECISIONS.md`
 
