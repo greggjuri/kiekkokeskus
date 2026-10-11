@@ -36,3 +36,15 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npx cdk synth
+
+  pages:
+    # Layer 5 (TESTING.md): pure JS modules under site/kiekkokeskus/ exercised by Node's
+    # built-in test runner. No npm in site/; the glob form works without --test-concurrency
+    # on Node 22.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node --test "site/kiekkokeskus/*.test.js"
