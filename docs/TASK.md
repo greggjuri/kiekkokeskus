@@ -6,10 +6,10 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 3
 
 ### In Progress
-*(none)*
+- [ ] `init-07-bolts-page` — /bolts page, shared page controller, hero (PRP-07)
 
 ### Up Next
-- [ ] `init-07-bolts-page` (Phase 3)
+- [ ] `init-08-leijonat-page` (Phase 3)
 
 ---
 

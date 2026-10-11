@@ -29,7 +29,7 @@ So:
 ```bash
 pytest --cov=kiekkokeskus --cov-report=term-missing   # 1–3, coverage ≥ 80% on src/
 cd infra && npm test                                   # 4
-node --test site/kiekkokeskus/                         # 5 (no npm deps in site/)
+node --test "site/kiekkokeskus/*.test.js"              # 5 (no npm deps in site/; Node 22 needs the glob)
 python scripts/smoke.py                                # 6
 ```
 

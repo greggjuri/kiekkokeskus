@@ -61,7 +61,7 @@ cd infra && PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm ci && cd ..
 .venv/bin/ruff check .                             # lint
 .venv/bin/ruff format --check .                    # formatting (use `ruff format .` to fix)
 cd infra && PATH="/opt/homebrew/opt/node@22/bin:$PATH" npm test   # CDK assertions
-node --test site/kiekkokeskus/                     # page logic, Node built-in runner
+node --test "site/kiekkokeskus/*.test.js"          # page logic, Node 22 built-in runner (glob required)
 .venv/bin/python scripts/smoke.py                  # after every deploy (TESTING.md layer 6)
 
 # Lifecycle (ADR-023, ADR-027)
