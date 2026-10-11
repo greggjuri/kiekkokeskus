@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>bolts · kiekkokeskus</title>
+    <link rel="stylesheet" href="/kiekkokeskus/kk.css" />
+  </head>
+  <body>
+    <main>
+      <div data-slot="header"></div>
+      <div data-slot="stale" hidden></div>
+      <div data-slot="error" hidden></div>
+
+      <section class="kk-tiles" data-slot="tiles"></section>
+
+      <section class="kk-card-grid">
+        <div class="kk-card" data-card="lastGame">
+          <h2 data-slot="lastGame-title"></h2>
+          <div data-slot="lastGame"></div>
+        </div>
+        <div class="kk-card" data-card="nextGames">
+          <h2 data-slot="nextGames-title"></h2>
+          <div data-slot="nextGames"></div>
+        </div>
+        <div class="kk-card" data-card="special">
+          <h2 data-slot="special-title"></h2>
+          <div data-slot="special"></div>
+        </div>
+      </section>
+
+      <section class="kk-card">
+        <h2 data-slot="skaters-title"></h2>
+        <div data-slot="pills"></div>
+        <div class="kk-scroll"><div data-slot="skaters"></div></div>
+      </section>
+
+      <section class="kk-card">
+        <h2 data-slot="goalies-title"></h2>
+        <div class="kk-scroll"><div data-slot="goalies"></div></div>
+      </section>
+
+      <footer data-slot="footer"></footer>
+    </main>
+    <script type="module" src="/bolts/main.js"></script>
+  </body>
+</html>
