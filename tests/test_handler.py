@@ -131,7 +131,9 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
             "schedule/2026-10-01": sched_body,
             "standings/2026-10-01": st_body,
             "club-schedule-season/TBL": stub,
-            "club-stats/TBL": stub,
+            "club-stats/TBL/": stub,
+            # Fan-out stub: catches club-stats/{team}/{season}/2 for every Finn team (init-05)
+            "club-stats/": stub,
             "gamecenter/2026020010/boxscore": box_body,
             "gamecenter/": b'{"ok": true}',  # catches the other 7 boxscores
             "skater/bios": skaters_body,
@@ -141,8 +143,9 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
             "skater/realtime": b'{"data":[],"total":0}',
             "skater/faceoffpercentages": b'{"data":[],"total":0}',
             "team/summary": b'{"data":[],"total":0}',
-            # FIN stats REST + rookie filter (init-05) — one entry catches all 6
-            "nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
+            # FIN stats REST + rookie filter (init-05). Match on the gameTypeId+FIN substring
+            # which is present in stats REST FIN URLs but NOT in bios URLs.
+            "gameTypeId%3D2+and+nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
         }
     )
 
@@ -167,14 +170,14 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     health_i = keys.index("data/kiekkokeskus/_health.json")
     assert bolts_i < health_i, "bolts.json must land before _health.json"
 
-    # 2 (schedule+standings) + 2 (club) + 8 (boxscores) + 2 (bios) + 4 (TBL stats REST)
-    # + 4 (FIN stats REST) + 2 (FIN rookies) = 24
+    # 2 (schedule+standings) + 2 (TBL club) + 8 (boxscores) + 2 (bios) + 4 (TBL stats REST)
+    # + 4 (FIN stats REST) + 2 (FIN rookies) + 18 (club-stats fan-out, 18 non-TBL Finn teams) = 42
     raw_keys = [
         k
         for k in keys
         if k.startswith("data/kiekkokeskus/raw/") and not k.endswith("_manifest.json")
     ]
-    assert len(raw_keys) == 24
+    assert len(raw_keys) == 42
     assert any(k.endswith("schedule__2026-10-01.json.gz") for k in raw_keys)
     assert any(k.endswith("standings__2026-10-01.json.gz") for k in raw_keys)
     assert any("boxscore__2026020010" in k for k in raw_keys)
@@ -190,6 +193,17 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     assert any("goalie-summary-FIN" in k for k in raw_keys)
     assert any("skater-rookies-FIN" in k for k in raw_keys)
     assert any("goalie-rookies-FIN" in k for k in raw_keys)
+    # Fan-out: 19 club-stats (TBL + 18 non-TBL Finn teams)
+    assert sum(1 for k in raw_keys if "club-stats-" in k and "stats-TBL" not in k) == 18
+    # Ordering (Fix 3): bios fetches complete before any non-TBL fan-out club-stats fetch
+    last_bios_i = max(i for i, k in enumerate(raw_keys) if "-bios-FIN" in k)
+    first_fanout_i = min(
+        (i for i, k in enumerate(raw_keys) if "club-stats-" in k and "stats-TBL" not in k),
+        default=len(raw_keys),
+    )
+    assert first_fanout_i > last_bios_i, (
+        "fan-out fetches must come after bios (needs currentTeamAbbrev)"
+    )
 
     # Raw objects are gzipped and advertise it
     sched_call = next(c for c in put.calls if c[0].endswith("schedule__2026-10-01.json.gz"))
@@ -213,7 +227,7 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     assert health["schemaVersion"] == 1
     assert health["trigger"] == "schedule"
     assert health["dataDate"] == "2026-10-01"
-    assert health["rawCount"] == 24
+    assert health["rawCount"] == 42
     assert health["version"] == __version__
     assert health["built"] == ["bolts"]
 
@@ -258,7 +272,7 @@ def test_season_fallback_via_standings_when_schedule_empty_for_data_date() -> No
             "skater/realtime": b'{"data":[],"total":0}',
             "skater/faceoffpercentages": b'{"data":[],"total":0}',
             "team/summary": b'{"data":[],"total":0}',
-            "nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
+            "gameTypeId%3D2+and+nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
         }
     )
     result = handler(
@@ -314,7 +328,7 @@ def test_fetch_failure_records_error_and_prevents_health() -> None:
             "skater/realtime": b'{"data":[],"total":0}',
             "skater/faceoffpercentages": b'{"data":[],"total":0}',
             "team/summary": b'{"data":[],"total":0}',
-            "nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
+            "gameTypeId%3D2+and+nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
         }
     )
     with pytest.raises(RuntimeError, match="errored requests"):
@@ -380,7 +394,7 @@ def test_build_failure_skips_bolts_and_health_and_raises(
             "skater/realtime": b'{"data":[],"total":0}',
             "skater/faceoffpercentages": b'{"data":[],"total":0}',
             "team/summary": b'{"data":[],"total":0}',
-            "nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
+            "gameTypeId%3D2+and+nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
         }
     )
     with pytest.raises(ValueError, match="boom in build_bolts"):
@@ -415,7 +429,7 @@ def test_stats_rest_truncated_marks_manifest_error(monkeypatch: pytest.MonkeyPat
             "skater/realtime": b'{"data":[],"total":0}',
             "skater/faceoffpercentages": b'{"data":[],"total":0}',
             "team/summary": b'{"data":[],"total":0}',
-            "nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
+            "gameTypeId%3D2+and+nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
         }
     )
     with pytest.raises(RuntimeError, match="errored requests"):

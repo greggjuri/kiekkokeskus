@@ -315,6 +315,33 @@ def handler(
             start += n
             page += 1
 
+    # Step 5.5: club-stats fan-out for Finnish-name `fi` keys (ADR-037). Must run AFTER both
+    # bios loops because we need `currentTeamAbbrev` from each Finn. TBL's payload is already
+    # fetched in Step 3 and lives at bodies["club-stats"]; we add it to the by-team dict by
+    # reference without re-fetching.
+    finn_teams: set[str] = set()
+    for pages in (bodies.get("bios-skater", []), bodies.get("bios-goalie", [])):
+        for page_payload in pages:
+            for row in page_payload.get("data") or []:
+                abbrev = row.get("currentTeamAbbrev")
+                if abbrev:
+                    finn_teams.add(abbrev)
+    bodies["club-stats-by-team"] = {}
+    if "club-stats" in bodies:
+        bodies["club-stats-by-team"][TBL] = bodies["club-stats"]
+    for team in sorted(finn_teams - {TBL}):
+        payload = _fetch_and_archive(
+            put=put,
+            now=now,
+            run_date=run_date,
+            slug=f"club-stats-{team}__{season}__2",
+            url=nhl.url_club_stats(team, season),
+            requests=manifest.requests,
+            fetch_fn=fetch_fn,
+        )
+        if payload is not None:
+            bodies["club-stats-by-team"][team] = payload
+
     # Step 6: stats REST — TBL-scoped skater reports + league-wide team summary.
     # Single-page fetches with limit=1000. Pagination guard (ADR-035): raise loudly on
     # unexpected truncation by marking the manifest row as errored.
