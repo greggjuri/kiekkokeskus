@@ -14,6 +14,7 @@ from datetime import UTC, datetime
 BASE = "https://jurigregg.com"
 HEALTH_PATH = "/data/kiekkokeskus/_health.json"
 BOLTS_PATH = "/data/kiekkokeskus/bolts.json"
+LEIJONAT_PATH = "/data/kiekkokeskus/leijonat.json"
 
 
 def _get(url: str) -> tuple[int, dict[str, str], bytes]:
@@ -76,6 +77,11 @@ def main() -> int:
             "bolts" in (payload.get("built") or []),
             f"built={payload.get('built')!r}",
         )
+        ok &= _check(
+            'built includes "leijonat"',
+            "leijonat" in (payload.get("built") or []),
+            f"built={payload.get('built')!r}",
+        )
         gen = payload.get("generatedAt", "")
         try:
             gen_dt = datetime.strptime(gen, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
@@ -86,6 +92,7 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         ok &= _check("health endpoint", False, repr(e))
 
+    bolts_data_date: str | None = None
     try:
         status, headers, body = _get(f"{BASE}{BOLTS_PATH}")
         ok &= _check("GET bolts 200", status == 200, f"status={status}")
@@ -107,6 +114,8 @@ def main() -> int:
                 payload.get("dataDate") == health_data_date,
                 f"bolts={payload.get('dataDate')!r} health={health_data_date!r}",
             )
+        dd = payload.get("dataDate")
+        bolts_data_date = dd if isinstance(dd, str) else None
         skaters = payload.get("skaters") or []
         ok &= _check(
             "bolts has >= 1 skater row",
@@ -115,6 +124,37 @@ def main() -> int:
         )
     except Exception as e:  # noqa: BLE001
         ok &= _check("bolts endpoint", False, repr(e))
+
+    try:
+        status, headers, body = _get(f"{BASE}{LEIJONAT_PATH}")
+        ok &= _check("GET leijonat 200", status == 200, f"status={status}")
+        cache = headers.get("cache-control", "")
+        ok &= _check(
+            "leijonat Cache-Control max-age=300",
+            "max-age=300" in cache,
+            f"cache-control={cache!r}",
+        )
+        payload = json.loads(body)
+        ok &= _check(
+            "leijonat schemaVersion == 1",
+            payload.get("schemaVersion") == 1,
+            f"schemaVersion={payload.get('schemaVersion')!r}",
+        )
+        if bolts_data_date is not None:
+            # Fix 7: compare against bolts.json's dataDate, not the ops-only health file.
+            ok &= _check(
+                "leijonat.dataDate matches bolts",
+                payload.get("dataDate") == bolts_data_date,
+                f"leijonat={payload.get('dataDate')!r} bolts={bolts_data_date!r}",
+            )
+        skaters = payload.get("skaters") or []
+        ok &= _check(
+            "leijonat has >= 1 skater row",
+            isinstance(skaters, list) and len(skaters) >= 1,
+            f"len(skaters)={len(skaters)}",
+        )
+    except Exception as e:  # noqa: BLE001
+        ok &= _check("leijonat endpoint", False, repr(e))
 
     return 0 if ok else 1
 
