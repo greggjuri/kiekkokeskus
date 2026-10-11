@@ -81,6 +81,7 @@ main {
 
 .kk-crumb {
   grid-area: crumb;
+  align-self: start;
   color: var(--kk-muted);
   font-size: 14px;
   letter-spacing: 0.02em;
@@ -88,6 +89,10 @@ main {
 
 .kk-title {
   grid-area: title;
+  /* Pin to the top of the grid row — otherwise the hero's 240 px span stretches rows 2–3
+     and align-items: baseline on the header sinks the title and subtitle inside those tall
+     rows, opening a huge gap between them. */
+  align-self: start;
   font-family: "Barlow Condensed", "IBM Plex Sans", sans-serif;
   font-weight: 700;
   font-size: 48px;
@@ -102,6 +107,7 @@ main {
 
 .kk-subtitle {
   grid-area: subtitle;
+  align-self: start;
   color: var(--kk-muted);
   margin: 0;
   font-size: 16px;
