@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!--
+  Dev harness. Never deployed (sync excludes _dev/*). Loads both goldens through the shared
+  modules and renders header + banners + pills + skater table + goalie table + footer twice.
+
+  Query flags for exercising edge cases:
+    ?now=<ISO>   override Date.now() for isStale (P1.2)
+    ?lang=en|fi  pick language explicitly (langExplicit = true)
+
+  Served by scripts/preview.py; the preview server can also inject --fresh / --break.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>kiekkokeskus — dev harness</title>
+    <link rel="stylesheet" href="/kiekkokeskus/kk.css" />
+    <style>
+      body { padding: 24px 0; }
+      .harness-page { border-top: 2px dashed var(--kk-line); padding-top: 16px; margin-top: 24px; }
+      .harness-tag { color: var(--kk-faint); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="harness-page" data-page="bolts">
+        <div class="harness-tag">/bolts preview</div>
+        <div data-slot="header"></div>
+        <div data-slot="stale" hidden></div>
+        <div data-slot="error" hidden></div>
+        <div class="kk-card">
+          <h2 data-slot="skaters-title"></h2>
+          <div data-slot="pills"></div>
+          <div class="kk-scroll"><div data-slot="skaters"></div></div>
+        </div>
+        <div class="kk-card">
+          <h2 data-slot="goalies-title"></h2>
+          <div class="kk-scroll"><div data-slot="goalies"></div></div>
+        </div>
+        <footer data-slot="footer"></footer>
+      </section>
+
+      <section class="harness-page" data-page="leijonat">
+        <div class="harness-tag">/leijonat preview</div>
+        <div data-slot="header"></div>
+        <div data-slot="stale" hidden></div>
+        <div data-slot="error" hidden></div>
+        <div class="kk-card">
+          <h2 data-slot="skaters-title"></h2>
+          <div data-slot="pills"></div>
+          <div class="kk-scroll"><div data-slot="skaters"></div></div>
+        </div>
+        <div class="kk-card">
+          <h2 data-slot="goalies-title"></h2>
+          <div class="kk-scroll"><div data-slot="goalies"></div></div>
+        </div>
+        <footer data-slot="footer"></footer>
+      </section>
+    </main>
+
+    <script type="module">
+      import { SKATER_COLUMNS, GOALIE_COLUMNS } from "/kiekkokeskus/columns.js";
+      import { resolveLang, t } from "/kiekkokeskus/i18n.js";
+      import { loadData } from "/kiekkokeskus/data.js";
+      import { readState, writeState } from "/kiekkokeskus/url.js";
+      import {
+        renderHeader,
+        renderPills,
+        renderStaleBanner,
+        renderErrorBanner,
+        hideBanner,
+        renderFooter,
+      } from "/kiekkokeskus/chrome.js";
+      import {
+        renderTable,
+        prepareSkaterRows,
+        prepareGoalieRows,
+        renderNoMatchIfEmpty,
+      } from "/kiekkokeskus/table.js";
+
+      // P1.2: let the harness pin "now" so the stale banner can be exercised without touching
+      // the JSON. Missing or invalid ?now= falls back to new Date().
+      function harnessNow() {
+        const raw = new URL(window.location.href).searchParams.get("now");
+        if (!raw) return new Date();
+        const d = new Date(raw);
+        return Number.isNaN(d.getTime()) ? new Date() : d;
+      }
+
+      // Shared language across both preview sections (one toggle rules them all).
+      const resolved = resolveLang({
+        url: new URL(window.location.href),
+        storage: window.localStorage,
+        nav: window.navigator,
+      }).lang;
+
+      // Each section manages its own state (sort/pos/dir).
+      function pageSetup(section, { pageName, dataPath }) {
+        const BOLTS_SKATERS = SKATER_COLUMNS.filter((c) => c.key !== "team");
+        const skaterColumns = pageName === "leijonat" ? SKATER_COLUMNS : BOLTS_SKATERS;
+        const goalieColumns = pageName === "leijonat" ? GOALIE_COLUMNS : GOALIE_COLUMNS.filter((c) => c.key !== "team");
+
+        const q = new URL(window.location.href).search;
+        let state = readState({
+          search: q,
+          columns: skaterColumns,
+          goalieColumns,
+          resolvedLang: resolved,
+        });
+
+        const slots = {
+          header: section.querySelector('[data-slot="header"]'),
+          stale: section.querySelector('[data-slot="stale"]'),
+          error: section.querySelector('[data-slot="error"]'),
+          pills: section.querySelector('[data-slot="pills"]'),
+          skaters: section.querySelector('[data-slot="skaters"]'),
+          goalies: section.querySelector('[data-slot="goalies"]'),
+          footer: section.querySelector('[data-slot="footer"]'),
+          skatersTitle: section.querySelector('[data-slot="skaters-title"]'),
+          goaliesTitle: section.querySelector('[data-slot="goalies-title"]'),
+        };
+
+        async function render() {
+          document.documentElement.lang = state.lang;
+          slots.skatersTitle.textContent = t("table.skaters", null, state.lang);
+          slots.goaliesTitle.textContent = t("table.goalies", null, state.lang);
+
+          renderHeader({
+            root: slots.header,
+            titleKey: `page.${pageName}.title`,
+            subtitleKey: null,
+            lang: state.lang,
+            onLangChange: (next) => {
+              state = { ...state, lang: next };
+              writeState(state, {
+                history: window.history,
+                pathname: window.location.pathname,
+                langExplicit: true,
+              });
+              render();
+            },
+          });
+          // Fallback title (strings don't have page keys yet)
+          const h1 = slots.header.querySelector(".kk-title");
+          if (h1 && !h1.textContent)
+            h1.textContent = pageName === "bolts" ? "Bolts preview" : "Leijonat preview";
+
+          renderPills({
+            root: slots.pills,
+            state,
+            lang: state.lang,
+            onChange: (pos) => {
+              state = { ...state, pos };
+              writeState(state, {
+                history: window.history,
+                pathname: window.location.pathname,
+                langExplicit: state.langExplicit,
+              });
+              render();
+            },
+          });
+
+          const result = await loadData(dataPath, 1);
+          if (!result.ok) {
+            renderErrorBanner({ root: slots.error, lang: state.lang });
+            hideBanner(slots.stale);
+            renderTable({ root: slots.skaters, columns: skaterColumns, rows: [], state, lang: state.lang, onSortChange: () => {} });
+            renderTable({ root: slots.goalies, columns: goalieColumns, rows: [], state, lang: state.lang, onSortChange: () => {} });
+            renderFooter({ root: slots.footer, dataDate: null, lang: state.lang });
+            return;
+          }
+          slots.error.hidden = true;
+
+          renderStaleBanner({
+            root: slots.stale,
+            generatedAt: result.data.generatedAt,
+            lang: state.lang,
+            now: harnessNow(),
+          });
+
+          const skaters = prepareSkaterRows(
+            result.data.skaters ?? [],
+            { pos: state.pos, sortKey: state.sort, dir: state.dir, lang: state.lang },
+            skaterColumns,
+          );
+          renderTable({
+            root: slots.skaters,
+            columns: skaterColumns,
+            rows: skaters,
+            state: { sortKey: state.sort, dir: state.dir },
+            lang: state.lang,
+            onSortChange: (ns) => {
+              state = { ...state, sort: ns.sortKey, dir: ns.dir };
+              writeState(state, {
+                history: window.history,
+                pathname: window.location.pathname,
+                langExplicit: state.langExplicit,
+              });
+              render();
+            },
+          });
+          renderNoMatchIfEmpty({
+            root: slots.skaters,
+            rowsBefore: result.data.skaters ?? [],
+            rowsAfter: skaters,
+            columns: skaterColumns,
+            lang: state.lang,
+          });
+
+          const goalies = prepareGoalieRows(
+            result.data.goalies ?? [],
+            { sortKey: state.gsort, dir: state.gdir, lang: state.lang },
+            goalieColumns,
+          );
+          renderTable({
+            root: slots.goalies,
+            columns: goalieColumns,
+            rows: goalies,
+            state: { sortKey: state.gsort, dir: state.gdir },
+            lang: state.lang,
+            onSortChange: (ns) => {
+              state = { ...state, gsort: ns.sortKey, gdir: ns.dir };
+              writeState(state, {
+                history: window.history,
+                pathname: window.location.pathname,
+                langExplicit: state.langExplicit,
+              });
+              render();
+            },
+          });
+
+          renderFooter({
+            root: slots.footer,
+            dataDate: result.data.dataDate,
+            lang: state.lang,
+          });
+        }
+
+        render();
+      }
+
+      pageSetup(document.querySelector('[data-page="bolts"]'), {
+        pageName: "bolts",
+        dataPath: "/data/kiekkokeskus/bolts.json",
+      });
+      pageSetup(document.querySelector('[data-page="leijonat"]'), {
+        pageName: "leijonat",
+        dataPath: "/data/kiekkokeskus/leijonat.json",
+      });
+    </script>
+  </body>
+</html>
