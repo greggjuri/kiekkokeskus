@@ -18,7 +18,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
-from kiekkokeskus import __version__, build_bolts, nhl
+from kiekkokeskus import __version__, build_phase, nhl
 from kiekkokeskus.archive import (
     Manifest,
     PutObject,
@@ -37,7 +37,6 @@ log.setLevel(logging.INFO)
 
 TBL = "TBL"
 HEALTH_SLUG = "_health.json"
-BOLTS_SLUG = "bolts.json"
 
 
 def _default_put() -> PutObject:
@@ -274,9 +273,10 @@ def handler(
     if cst_payload is not None:
         bodies["club-stats"] = cst_payload
 
-    # Step 4: boxscores for completed reg-season games on dataDate
+    # Step 4: boxscores for completed reg-season games on dataDate. Collect for build_leijonat.
+    boxscore_payloads: list[dict[str, Any]] = []
     for gid in game_ids:
-        _fetch_and_archive(
+        bx_payload = _fetch_and_archive(
             put=put,
             now=now,
             run_date=run_date,
@@ -285,6 +285,8 @@ def handler(
             requests=manifest.requests,
             fetch_fn=fetch_fn,
         )
+        if bx_payload is not None:
+            boxscore_payloads.append(bx_payload)
 
     # Step 5: bios paginated. Collect pages into bodies for init-05 build.
     bodies["bios-skater"] = []
@@ -429,29 +431,20 @@ def handler(
             f"collector run had {sum(1 for r in manifest.requests if r.error)} errored requests"
         )
 
-    # Build phase (ADR-035): compose bolts.json from in-memory bodies.
-    built: list[str] = []
-    try:
-        bolts = build_bolts.build(
-            data_date=data_date,
-            season=season,
-            now_iso=iso_z(now()),
-            standings_payload=bodies["standings"],
-            club_stats_payload=bodies["club-stats"],
-            club_schedule_payload=bodies["club-schedule"],
-            skater_summary_payload=bodies["skater-summary"],
-            skater_realtime_payload=bodies["skater-realtime"],
-            skater_faceoff_payload=bodies["skater-faceoff"],
-            team_summary_payload=bodies["team-summary"],
-        )
-    except Exception as e:
-        log.error(json.dumps({"event": "build_failed", "builder": "bolts", "error": str(e)}))
-        raise
-    bolts_body = json.dumps(bolts, separators=(",", ":")).encode()
-    bolts_key = f"{prefix}{BOLTS_SLUG}"
-    put(bolts_key, bolts_body, "application/json", "public, max-age=300", None)
-    built.append("bolts")
-    log.info(json.dumps({"event": "bolts_written", "key": bolts_key}))
+    # Build phase (ADR-035/037): two independent builders.
+    outputs, errors = build_phase.run_builders(
+        bodies=bodies,
+        data_date=data_date,
+        season=season,
+        now_iso=iso_z(now()),
+        boxscore_payloads=boxscore_payloads,
+    )
+    built = build_phase.write_outputs(put=put, prefix=prefix, outputs=outputs)
+
+    if errors:
+        # Any builder failure means no health file; alarm fires.
+        names = ", ".join(sorted(errors))
+        raise RuntimeError(f"builder(s) failed: {names}")
 
     key = _write_health(
         put=put,

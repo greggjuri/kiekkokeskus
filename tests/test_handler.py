@@ -158,17 +158,23 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     )
     assert result["status"] == "ok"
 
-    # Every raw key under raw/{runDate}/ except bolts.json and _health.json
+    # Every raw key under raw/{runDate}/ except bolts.json, leijonat.json, _health.json
     keys = [c[0] for c in put.calls]
     assert all(k.startswith("data/kiekkokeskus/") for k in keys)
     non_raw = [k for k in keys if not k.startswith("data/kiekkokeskus/raw/")]
     assert sorted(non_raw) == sorted(
-        ["data/kiekkokeskus/bolts.json", "data/kiekkokeskus/_health.json"]
+        [
+            "data/kiekkokeskus/bolts.json",
+            "data/kiekkokeskus/leijonat.json",
+            "data/kiekkokeskus/_health.json",
+        ]
     )
-    # bolts.json order: written before _health.json
+    # Build outputs must land before _health.json
     bolts_i = keys.index("data/kiekkokeskus/bolts.json")
+    leij_i = keys.index("data/kiekkokeskus/leijonat.json")
     health_i = keys.index("data/kiekkokeskus/_health.json")
-    assert bolts_i < health_i, "bolts.json must land before _health.json"
+    assert bolts_i < health_i
+    assert leij_i < health_i
 
     # 2 (schedule+standings) + 2 (TBL club) + 8 (boxscores) + 2 (bios) + 4 (TBL stats REST)
     # + 4 (FIN stats REST) + 2 (FIN rookies) + 18 (club-stats fan-out, 18 non-TBL Finn teams) = 42
@@ -229,7 +235,7 @@ def test_happy_path_writes_raw_manifest_and_health() -> None:
     assert health["dataDate"] == "2026-10-01"
     assert health["rawCount"] == 42
     assert health["version"] == __version__
-    assert health["built"] == ["bolts"]
+    assert health["built"] == ["bolts", "leijonat"]
 
     # bolts.json has correct envelope + cache header
     bolts_call = next(c for c in put.calls if c[0].endswith("bolts.json"))
@@ -364,47 +370,108 @@ def test_raw_schedule_stored_even_if_parser_raises(monkeypatch: pytest.MonkeyPat
     assert gzip.decompress(raw_sched[0][1]) == sched_body
 
 
-# --- build-phase failure (init-04) ------------------------------------------
+# --- two independent builders (init-05) -------------------------------------
+
+_HAPPY_FETCH_STUBS = {
+    "club-schedule-season/TBL": b'{"ok": true, "games": []}',
+    "club-stats/TBL/": b'{"ok": true, "games": []}',
+    "club-stats/": b'{"ok": true, "games": []}',
+    "gamecenter/": b'{"ok": true}',
+    "skater/bios": b'{"data":[],"total":0}',
+    "goalie/bios": b'{"data":[],"total":0}',
+    "skater/summary": b'{"data":[],"total":0}',
+    "skater/realtime": b'{"data":[],"total":0}',
+    "skater/faceoffpercentages": b'{"data":[],"total":0}',
+    "team/summary": b'{"data":[],"total":0}',
+    "gameTypeId%3D2+and+nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
+}
 
 
-def test_build_failure_skips_bolts_and_health_and_raises(
+def _two_builder_fetch_fn():
+    sched = _load_fixture("schedule__2026-10-01__2026-10-03.json.gz")
+    st = _load_fixture("standings__2026-10-01__2026-10-03.json.gz")
+    mapping = {
+        "schedule/2026-10-01": sched,
+        "standings/2026-10-01": st,
+        **_HAPPY_FETCH_STUBS,
+    }
+    return _make_fetch(mapping)
+
+
+def test_bolts_fails_leijonat_succeeds_writes_leijonat_only(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """PRP-04 Step 5: a builder exception must leave no bolts.json and no _health.json."""
-    sched_body = _load_fixture("schedule__2026-10-01__2026-10-03.json.gz")
-    st_body = _load_fixture("standings__2026-10-01__2026-10-03.json.gz")
-    stub = b'{"ok": true, "games": []}'
+    """ADR-037: a bolts failure must not freeze leijonat; no health; raises after."""
 
-    def exploding_build(**_kwargs):
-        raise ValueError("boom in build_bolts.build")
+    def exploding(**_kwargs):
+        raise ValueError("boom in bolts")
 
-    monkeypatch.setattr(handler_mod.build_bolts, "build", exploding_build)
+    monkeypatch.setattr(handler_mod.build_phase.build_bolts, "build", exploding)
 
     put = FakePut()
-    fetch_fn = _make_fetch(
-        {
-            "schedule/2026-10-01": sched_body,
-            "standings/2026-10-01": st_body,
-            "club-schedule-season/TBL": stub,
-            "club-stats/TBL": stub,
-            "gamecenter/": b'{"ok": true}',
-            "skater/bios": b'{"data":[],"total":0}',
-            "goalie/bios": b'{"data":[],"total":0}',
-            "skater/summary": b'{"data":[],"total":0}',
-            "skater/realtime": b'{"data":[],"total":0}',
-            "skater/faceoffpercentages": b'{"data":[],"total":0}',
-            "team/summary": b'{"data":[],"total":0}',
-            "gameTypeId%3D2+and+nationalityCode%3D%22FIN%22": b'{"data":[],"total":0}',
-        }
-    )
-    with pytest.raises(ValueError, match="boom in build_bolts"):
-        handler({"date": "2026-10-01"}, None, put=put, now=lambda: FIXED_NOW, fetch_fn=fetch_fn)
-
+    with pytest.raises(RuntimeError, match="builder.*failed.*bolts"):
+        handler(
+            {"date": "2026-10-01"},
+            None,
+            put=put,
+            now=lambda: FIXED_NOW,
+            fetch_fn=_two_builder_fetch_fn(),
+        )
     keys = [c[0] for c in put.calls]
-    # Manifest was written (fetches all succeeded); bolts and health were NOT.
-    assert any(k.endswith("_manifest.json") for k in keys)
     assert "data/kiekkokeskus/bolts.json" not in keys
+    assert "data/kiekkokeskus/leijonat.json" in keys
     assert "data/kiekkokeskus/_health.json" not in keys
+
+
+def test_leijonat_fails_bolts_succeeds_writes_bolts_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Mirror: a leijonat failure must not freeze bolts."""
+
+    def exploding(**_kwargs):
+        raise ValueError("boom in leijonat")
+
+    monkeypatch.setattr(handler_mod.build_phase.build_leijonat, "build", exploding)
+
+    put = FakePut()
+    with pytest.raises(RuntimeError, match="builder.*failed.*leijonat"):
+        handler(
+            {"date": "2026-10-01"},
+            None,
+            put=put,
+            now=lambda: FIXED_NOW,
+            fetch_fn=_two_builder_fetch_fn(),
+        )
+    keys = [c[0] for c in put.calls]
+    assert "data/kiekkokeskus/bolts.json" in keys
+    assert "data/kiekkokeskus/leijonat.json" not in keys
+    assert "data/kiekkokeskus/_health.json" not in keys
+
+
+def test_both_builders_fail_neither_written_no_health(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def exploding(**_kwargs):
+        raise ValueError("boom")
+
+    monkeypatch.setattr(handler_mod.build_phase.build_bolts, "build", exploding)
+    monkeypatch.setattr(handler_mod.build_phase.build_leijonat, "build", exploding)
+
+    put = FakePut()
+    with pytest.raises(RuntimeError, match="builder.*failed"):
+        handler(
+            {"date": "2026-10-01"},
+            None,
+            put=put,
+            now=lambda: FIXED_NOW,
+            fetch_fn=_two_builder_fetch_fn(),
+        )
+    keys = [c[0] for c in put.calls]
+    assert "data/kiekkokeskus/bolts.json" not in keys
+    assert "data/kiekkokeskus/leijonat.json" not in keys
+    assert "data/kiekkokeskus/_health.json" not in keys
+    # Manifest still written (fetches all succeeded)
+    assert any(k.endswith("_manifest.json") for k in keys)
 
 
 def test_stats_rest_truncated_marks_manifest_error(monkeypatch: pytest.MonkeyPatch) -> None:
