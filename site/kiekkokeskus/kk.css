@@ -1,0 +1,305 @@
+/* Kiekkokeskus — shared page style. Dark only. ADR-038 (display conventions). */
+
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+:root {
+  --kk-bg: #071a3a;
+  --kk-surface: #0e2550;
+  --kk-hover: #13306a;
+  --kk-text: #ffffff;
+  --kk-muted: #b6c3dd;
+  --kk-faint: #7f90b3;
+  --kk-line: rgba(255, 255, 255, 0.18);
+  --kk-line-soft: rgba(255, 255, 255, 0.07);
+  --kk-focus: #ffcf4a;
+  --kk-stale: #ffcf4a;
+  --kk-error: #ff6b6b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--kk-bg);
+  color: var(--kk-text);
+  font-family: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, Roboto,
+    sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+@media (max-width: 600px) {
+  main {
+    padding: 16px;
+  }
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--kk-focus);
+  outline-offset: 2px;
+}
+
+/* Header */
+.kk-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 16px;
+  align-items: baseline;
+  padding: 16px 0 24px;
+}
+
+.kk-crumb {
+  grid-column: 1 / -1;
+  color: var(--kk-muted);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.kk-title {
+  font-family: "Barlow Condensed", "IBM Plex Sans", sans-serif;
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 1.05;
+  margin: 0;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.kk-subtitle {
+  grid-column: 1 / -1;
+  color: var(--kk-muted);
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Language toggle */
+.kk-lang {
+  display: inline-flex;
+  gap: 2px;
+  background: var(--kk-surface);
+  border: 1px solid var(--kk-line);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.kk-lang button {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--kk-muted);
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.kk-lang button[aria-pressed="true"] {
+  background: var(--kk-hover);
+  color: var(--kk-text);
+}
+
+/* Position pills */
+.kk-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.kk-pill {
+  min-height: 44px;
+  padding: 0 16px;
+  background: var(--kk-surface);
+  color: var(--kk-muted);
+  border: 1px solid var(--kk-line);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.kk-pill[aria-pressed="true"] {
+  background: var(--kk-hover);
+  color: var(--kk-text);
+  border-color: var(--kk-text);
+}
+
+/* Banners */
+.kk-banner {
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.kk-banner[hidden] {
+  display: none;
+}
+
+.kk-banner-stale {
+  background: color-mix(in srgb, var(--kk-stale) 20%, var(--kk-surface));
+  color: var(--kk-text);
+  border: 1px solid var(--kk-stale);
+}
+
+.kk-banner-error {
+  background: color-mix(in srgb, var(--kk-error) 25%, var(--kk-surface));
+  color: var(--kk-text);
+  border: 1px solid var(--kk-error);
+}
+
+/* Cards */
+.kk-card {
+  background: var(--kk-surface);
+  border: 1px solid var(--kk-line);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.kk-card > h2 {
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+
+/* Scrollable table container with a sticky left column */
+.kk-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -16px;
+  padding: 0 16px;
+}
+
+.kk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kk-table thead th {
+  background: var(--kk-surface);
+  color: var(--kk-muted);
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--kk-line);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-family: "Barlow Condensed", sans-serif;
+  letter-spacing: 0.03em;
+}
+
+.kk-table thead th.kk-numeric,
+.kk-table tbody td.kk-numeric {
+  text-align: right;
+}
+
+.kk-table thead th button {
+  display: block;
+  width: 100%;
+  padding: 10px 10px;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.kk-table thead th[aria-sort="descending"],
+.kk-table thead th[aria-sort="ascending"] {
+  background: var(--kk-hover);
+  color: var(--kk-text);
+}
+
+.kk-table thead th[aria-sort="descending"] button::after {
+  content: " ↓";
+}
+
+.kk-table thead th[aria-sort="ascending"] button::after {
+  content: " ↑";
+}
+
+.kk-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--kk-line-soft);
+}
+
+.kk-table tbody tr:hover td {
+  background: color-mix(in srgb, var(--kk-hover) 50%, transparent);
+}
+
+/* Sticky name column (first column) */
+.kk-table thead th:first-child,
+.kk-table tbody td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--kk-bg);
+  z-index: 2;
+}
+
+.kk-table thead th:first-child {
+  background: var(--kk-surface);
+}
+
+.kk-table tbody tr:hover td:first-child {
+  background: color-mix(in srgb, var(--kk-hover) 50%, var(--kk-bg));
+}
+
+.kk-null {
+  color: var(--kk-faint);
+}
+
+.kk-empty {
+  padding: 20px 10px;
+  color: var(--kk-muted);
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .kk-table tbody td,
+  .kk-table thead th button {
+    padding: 8px;
+  }
+}
+
+/* Footer */
+.kk-footer {
+  margin-top: 32px;
+  padding: 24px 0;
+  border-top: 1px solid var(--kk-line);
+  color: var(--kk-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.kk-through {
+  margin: 0 0 8px;
+  color: var(--kk-text);
+}
+
+.kk-disclaimer {
+  margin: 0;
+}
