@@ -1,5 +1,6 @@
-// Table rendering. Thin DOM glue over sort.js + format.js + i18n.js.
-// Not unit-tested — exercised in the dev harness and the Layer 7 manual checklist.
+// Table rendering. Thin DOM glue over sort.js + format.js + i18n.js. DOM rendering is
+// exercised in the dev harness and the Layer 7 manual checklist. The pure
+// `headerClickHandler` reducer is unit-tested in `table.test.js`.
 
 import {
   int,
@@ -53,9 +54,18 @@ function ariaSort(column, state) {
   return state.dir === "desc" ? "descending" : "ascending";
 }
 
-// renderTable: owns the DOM for one table. Builds <thead> on first render and swaps <tbody>
-// on re-render. onSortChange(newState) is called when a header is clicked; the caller passes
-// nextSort(state, column) and then calls renderTable again with the new state.
+// Pure header-click reducer. The listener attached to each <th>'s <button> uses this to look
+// up the *current* state and onSortChange at click time, not the state captured in the first
+// render's closure (that was the bug: second click on the same header always fired with the
+// first-render state and never flipped the direction).
+export function headerClickHandler(getCurrent, col) {
+  const { state, onSortChange } = getCurrent() ?? {};
+  onSortChange?.(nextSort(state, col));
+}
+
+// renderTable: owns the DOM for one table. Builds <thead> once and swaps <tbody> on re-render.
+// Every call stores the latest { state, onSortChange } on the table element so the header
+// listeners (attached only once) can read them live.
 export function renderTable({ root, columns, rows, state, lang, onSortChange }) {
   const doc = root.ownerDocument;
 
@@ -80,7 +90,7 @@ export function renderTable({ root, columns, rows, state, lang, onSortChange }) 
         "aria-label",
         t("table.sortBy", { title: headerTitle(col, lang) }, lang),
       );
-      btn.addEventListener("click", () => onSortChange?.(nextSort(state, col)));
+      btn.addEventListener("click", () => headerClickHandler(() => table._kk, col));
       th.appendChild(btn);
       trh.appendChild(th);
     }
@@ -89,6 +99,10 @@ export function renderTable({ root, columns, rows, state, lang, onSortChange }) 
     root.innerHTML = "";
     root.appendChild(table);
   }
+
+  // Set BEFORE the early return below so the click handler always reads the latest state,
+  // even when a render exits early (empty rows path).
+  table._kk = { state, onSortChange };
 
   // Keep aria-sort and header labels in sync (handles language switch).
   const headers = table.querySelectorAll("thead th");
