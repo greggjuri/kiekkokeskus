@@ -50,15 +50,44 @@ def cdk_deploy() -> None:
     subprocess.run(cmd, cwd=INFRA_DIR, env=_subprocess_env(), check=True)
 
 
+SHARED_SYNC_DEST = "s3://jurigregg-static-site/kiekkokeskus/"
+SHARED_SYNC_SOURCE = "site/kiekkokeskus/"
+
+
+def _shared_sync_cmd() -> list[str]:
+    return [
+        "aws",
+        "s3",
+        "sync",
+        SHARED_SYNC_SOURCE,
+        SHARED_SYNC_DEST,
+        "--delete",
+        "--exclude",
+        "*.test.js",
+        "--exclude",
+        "_dev/*",
+        "--exclude",
+        "package.json",
+        "--cache-control",
+        "public, max-age=300",
+        "--profile",
+        "default",
+    ]
+
+
 def page_sync() -> None:
-    """Placeholder for init-06. Each future sync must target an allowed prefix (ADR-024)."""
-    # Example of the guard that will apply when init-06 fills this in:
-    #   dest = "s3://jurigregg-static-site/bolts/"
-    #   _check_allowed(dest)
-    #   subprocess.run(
-    #       ["aws", "s3", "sync", "site/bolts/", dest, "--profile", "default"], check=True
-    #   )
-    pass
+    """Sync shared page assets to the kiekkokeskus/ prefix (ADR-024, ADR-039).
+
+    --delete is scoped to the kiekkokeskus/ prefix (allowed by ADR-024). Tests, _dev/, and the
+    optional package.json marker are excluded. Cache-Control is set per-object so a deploy is
+    visible within ~5 min (the distribution's legacy default is 1 h, see ADR-022 verified note).
+
+    bolts/ and leijonat/ syncs stay unwired until init-07 / init-08.
+    """
+    _check_allowed(SHARED_SYNC_DEST)
+    # env=_subprocess_env() keeps AWS_PROFILE=default and the Node 22 PATH prefix in sync with
+    # cdk_diff / cdk_deploy.
+    subprocess.run(_shared_sync_cmd(), cwd=REPO_ROOT, env=_subprocess_env(), check=True)
 
 
 def _check_allowed(dest: str) -> None:
