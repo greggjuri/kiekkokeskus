@@ -52,7 +52,9 @@ main {
 /* Header */
 .kk-header {
   display: grid;
-  grid-template-columns: 1fr auto;
+  /* minmax(0, 1fr) lets the title column shrink below its min-content so a very long title
+     doesn't push the grid past its container on narrow viewports. */
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px 16px;
   align-items: baseline;
   padding: 16px 0 24px;
@@ -73,6 +75,8 @@ main {
   margin: 0;
   letter-spacing: 0.01em;
   text-transform: uppercase;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .kk-subtitle {

@@ -131,7 +131,8 @@
             subtitleKey: null,
             lang: state.lang,
             onLangChange: (next) => {
-              state = { ...state, lang: next };
+              // Mark langExplicit on the state so later pill/sort writes keep ?lang= in the URL.
+              state = { ...state, lang: next, langExplicit: true };
               writeState(state, {
                 history: window.history,
                 pathname: window.location.pathname,
