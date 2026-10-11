@@ -16,6 +16,8 @@ import {
   date,
   gameTime,
   position,
+  ordinal,
+  season,
 } from "./format.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -56,7 +58,11 @@ test("every formatter returns '–' (U+2013) on null or undefined", () => {
     assert.equal(date(null, lang), NULL_DISPLAY);
     assert.equal(gameTime(null, lang), NULL_DISPLAY);
     assert.equal(position(null, lang), NULL_DISPLAY);
+    assert.equal(ordinal(null, lang), NULL_DISPLAY);
   }
+  assert.equal(season(null), NULL_DISPLAY);
+  assert.equal(season(undefined), NULL_DISPLAY);
+  assert.equal(season("202620"), NULL_DISPLAY); // wrong length
 });
 
 // --- int ---
@@ -208,4 +214,60 @@ test("gameTime EN under TZ=America/New_York: 2026-10-10T23:30:00Z → contains '
   assert.match(out, /10\/10/);
   assert.match(out, /7:30\s?PM/i);
   assert.match(out, /EDT|EST|UTC/); // some zone marker
+});
+
+// --- ordinal ---
+
+test("ordinal EN: Intl.PluralRules st/nd/rd/th", () => {
+  const cases = [
+    [1, "1st"],
+    [2, "2nd"],
+    [3, "3rd"],
+    [4, "4th"],
+    [11, "11th"],
+    [12, "12th"],
+    [13, "13th"],
+    [21, "21st"],
+    [22, "22nd"],
+    [23, "23rd"],
+    [30, "30th"],
+    [101, "101st"],
+    [111, "111th"],
+  ];
+  for (const [n, expected] of cases) {
+    assert.equal(ordinal(n, "en"), expected, `ordinal(${n}, 'en')`);
+  }
+});
+
+test("ordinal FI: always `${n}.`", () => {
+  for (const n of [1, 2, 3, 4, 11, 21, 101, 111]) {
+    assert.equal(ordinal(n, "fi"), `${n}.`);
+  }
+});
+
+// --- season ---
+
+test("season: '20262027' → '2026–27' with U+2013 at index 4", () => {
+  const out = season("20262027");
+  assert.equal(out, "2026–27");
+  assert.equal(out.charCodeAt(4), 0x2013);
+  // Not a regular hyphen (U+002D) or NB hyphen (U+2011)
+  assert.notEqual(out.charCodeAt(4), 0x002d);
+  assert.notEqual(out.charCodeAt(4), 0x2011);
+});
+
+test("season: another season", () => {
+  assert.equal(season("20252026"), "2025–26");
+});
+
+// --- signed negative-zero pin (PRP-07 gotcha row) ---
+
+test("signed(-0) renders '0' (not '-0', not '+0') in EN and FI", () => {
+  // Intl's exceptZero already handles this correctly in both locales. Lock it in so a future
+  // rewrite can't regress. (-gap when gap === 0 produces -0 in JS; the view then calls signed.)
+  const minusZero = -0;
+  assert.equal(signed(minusZero, "en"), "0");
+  assert.equal(signed(minusZero, "fi"), "0");
+  assert.equal(signed(minusZero, "en").length, 1);
+  assert.equal(signed(minusZero, "fi").length, 1);
 });

@@ -147,3 +147,21 @@ export function position(code, lang) {
   const dict = STRINGS[lang] ?? STRINGS.en;
   return dict[key] ?? STRINGS.en[key] ?? code;
 }
+
+// ordinal: EN via Intl.PluralRules ordinal categories (st/nd/rd/th);
+// FI always `${n}.` because FI ordinals use the dot form regardless of n.
+const ORDINAL_EN = new Intl.PluralRules("en-US", { type: "ordinal" });
+const ORDINAL_EN_SUFFIX = { one: "st", two: "nd", few: "rd", other: "th" };
+
+export function ordinal(n, lang) {
+  if (nullish(n)) return NULL_DISPLAY;
+  if (lang === "fi") return `${n}.`;
+  const cat = ORDINAL_EN.select(n);
+  return `${n}${ORDINAL_EN_SUFFIX[cat] ?? "th"}`;
+}
+
+// season("20262027") → "2026–27" (U+2013 EN DASH, not U+2010 hyphen).
+export function season(id) {
+  if (nullish(id) || typeof id !== "string" || id.length !== 8) return NULL_DISPLAY;
+  return `${id.slice(0, 4)}–${id.slice(6, 8)}`;
+}
