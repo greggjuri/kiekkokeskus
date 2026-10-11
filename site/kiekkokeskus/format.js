@@ -122,8 +122,10 @@ export function date(iso, lang) {
   return (lang === "fi" ? DATE_FI : DATE_EN).format(d);
 }
 
-// gameTime: ISO UTC → viewer-local time with the short zone name. The whole point is that
-// a late Eastern-time game rolls over the day for a Finnish viewer.
+// gameTime: ISO UTC → viewer-local time. hour: 'numeric' avoids a leading zero on single-
+// digit times ('7:30 PM', not '07:30 PM'). No timeZoneName — FI renders it as 'UTC-4' which
+// adds nothing, and the time is already in the viewer's own zone (that's the whole point of
+// this formatter: a late ET game rolls over the day for a Finnish viewer).
 export function gameTime(iso, lang) {
   if (nullish(iso) || typeof iso !== "string") return NULL_DISPLAY;
   const d = new Date(iso);
@@ -133,10 +135,9 @@ export function gameTime(iso, lang) {
     weekday: "short",
     day: "numeric",
     month: "numeric",
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
     hour12: lang !== "fi",
-    timeZoneName: "short",
   });
   return fmt.format(d);
 }
@@ -160,8 +161,12 @@ export function ordinal(n, lang) {
   return `${n}${ORDINAL_EN_SUFFIX[cat] ?? "th"}`;
 }
 
-// season("20262027") → "2026–27" (U+2013 EN DASH, not U+2010 hyphen).
+// season("20262027") → "2026⁠–⁠27" — en-dash (U+2013) wrapped in WORD JOINER
+// (U+2060) on both sides so '2026–27' never line-breaks. The joiners are zero-width and
+// invisible but prevent a line break at the dash. Cleaner than a <span class="nowrap">
+// because season() is a plain-string helper that any formatter can concatenate.
 export function season(id) {
   if (nullish(id) || typeof id !== "string" || id.length !== 8) return NULL_DISPLAY;
-  return `${id.slice(0, 4)}–${id.slice(6, 8)}`;
+  const WJ = "⁠";
+  return `${id.slice(0, 4)}${WJ}–${WJ}${id.slice(6, 8)}`;
 }

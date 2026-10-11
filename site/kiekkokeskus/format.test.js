@@ -191,29 +191,35 @@ test("date east of UTC: TZ=Pacific/Kiritimati still renders Oct 2", () => {
 
 // --- gameTime: viewer-local tz, the day rolls over ---
 
-test("gameTime FI under TZ=Europe/Helsinki: 2026-10-10T23:30:00Z → 'su 11.10. klo 02.30' prefix", () => {
+test("gameTime FI under TZ=Europe/Helsinki: 2026-10-10T23:30:00Z → 'su 11.10. klo 2.30' (no leading zero, no zone)", () => {
   // The whole reason gameTime exists: for a Finnish viewer, a late Saturday-evening ET game
-  // becomes Sunday 02:30 local time. Match on weekday + date + hh.mm; the zone suffix
-  // (UTC+3) may follow and may vary.
+  // becomes Sunday 2:30 local time. hour: 'numeric' avoids the leading zero. No timeZoneName
+  // in the output — FI's 'UTC+3' label adds nothing when the time is already viewer-local.
   const [out] = runWithTz(
     "Europe/Helsinki",
     `import { gameTime } from "./format.js";
      process.stdout.write(JSON.stringify([gameTime("2026-10-10T23:30:00Z", "fi")]));`,
   );
-  assert.match(out, /^su 11\.10\. klo 02\.30/u);
+  // No leading zero on the hour
+  assert.doesNotMatch(out, /klo 0\d/);
+  // Weekday + date + hh.mm (minutes stay 2-digit for readability)
+  assert.match(out, /^su 11\.10\. klo 2\.30$/u);
 });
 
-test("gameTime EN under TZ=America/New_York: 2026-10-10T23:30:00Z → contains '10/10' and 7:30 PM", () => {
-  // With month: "numeric", EN renders "Sat, 10/10, 07:30 PM EDT". Invariant: the date is the
-  // local date (not the UTC date), time is the viewer's wall clock, and a zone marker is present.
+test("gameTime EN under TZ=America/New_York: 2026-10-10T23:30:00Z → '7:30 PM' with no leading zero and no zone", () => {
   const [out] = runWithTz(
     "America/New_York",
     `import { gameTime } from "./format.js";
      process.stdout.write(JSON.stringify([gameTime("2026-10-10T23:30:00Z", "en")]));`,
   );
+  // No leading zero on the hour ('07:30' would fail)
+  assert.doesNotMatch(out, /0\d:\d\d/);
+  // Date is viewer-local (not the UTC date)
   assert.match(out, /10\/10/);
-  assert.match(out, /7:30\s?PM/i);
-  assert.match(out, /EDT|EST|UTC/); // some zone marker
+  // Hour is single-digit '7:30 PM', not '07:30 PM'
+  assert.match(out, /\b7:30\s?PM/i);
+  // No zone label (EDT/EST/UTC) — removed in Fix B
+  assert.doesNotMatch(out, /EDT|EST|UTC[-+]?\d*/);
 });
 
 // --- ordinal ---
@@ -247,17 +253,21 @@ test("ordinal FI: always `${n}.`", () => {
 
 // --- season ---
 
-test("season: '20262027' → '2026–27' with U+2013 at index 4", () => {
+test("season: '20262027' → '2026⁠–⁠27' with WORD JOINERs around the en-dash", () => {
   const out = season("20262027");
-  assert.equal(out, "2026–27");
-  assert.equal(out.charCodeAt(4), 0x2013);
-  // Not a regular hyphen (U+002D) or NB hyphen (U+2011)
-  assert.notEqual(out.charCodeAt(4), 0x002d);
-  assert.notEqual(out.charCodeAt(4), 0x2011);
+  // Characters: '2' '0' '2' '6' U+2060 U+2013 U+2060 '2' '7'
+  assert.equal(out.length, 9);
+  assert.equal(out.charCodeAt(0), "2".charCodeAt(0));
+  assert.equal(out.charCodeAt(4), 0x2060); // WORD JOINER before dash
+  assert.equal(out.charCodeAt(5), 0x2013); // EN DASH
+  assert.equal(out.charCodeAt(6), 0x2060); // WORD JOINER after dash
+  assert.equal(out.charCodeAt(7), "2".charCodeAt(0));
+  // Visually: still reads as '2026–27' because U+2060 is zero-width.
+  assert.equal(out.replace(/⁠/g, ""), "2026–27");
 });
 
 test("season: another season", () => {
-  assert.equal(season("20252026"), "2025–26");
+  assert.equal(season("20252026").replace(/⁠/g, ""), "2025–26");
 });
 
 // --- signed negative-zero pin (PRP-07 gotcha row) ---
