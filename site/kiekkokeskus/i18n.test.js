@@ -6,6 +6,8 @@ import {
   t,
   renderName,
   nameSortKey,
+  tp,
+  localName,
 } from "./i18n.js";
 
 const makeUrl = (search) => new URL(`https://x.test/${search}`);
@@ -150,4 +152,59 @@ test("nameSortKey orders by last then first", () => {
   };
   assert.equal(nameSortKey(row, "en"), "vasilevskiy andrei");
   assert.equal(nameSortKey(row, "fi"), "vasilevski andrei");
+});
+
+// --- tp (plural lookup) ---
+// NOTE: these tests depend on Step 3 strings (unit.pts.one/.other, gih.ahead.one/.other,
+// gih.behind.one/.other). They will fail until Step 3 lands.
+
+test("tp cardinals en/fi for unit.pts", () => {
+  assert.equal(tp("unit.pts", 1, "en"), "1 pt");
+  assert.equal(tp("unit.pts", 6, "en"), "6 pts");
+  assert.equal(tp("unit.pts", 1, "fi"), "1 p");
+  assert.equal(tp("unit.pts", 6, "fi"), "6 p");
+});
+
+test("tp gih.ahead and gih.behind in both langs", () => {
+  assert.equal(tp("gih.ahead", 1, "en"), "1 game in hand");
+  assert.equal(tp("gih.ahead", 2, "en"), "2 games in hand");
+  assert.equal(tp("gih.behind", 1, "en"), "1 more game played");
+  assert.equal(tp("gih.behind", 2, "en"), "2 more games played");
+  assert.equal(tp("gih.ahead", 1, "fi"), "1 ottelu vähemmän pelattuna");
+  assert.equal(tp("gih.ahead", 2, "fi"), "2 ottelua vähemmän pelattuna");
+  assert.equal(tp("gih.behind", 2, "fi"), "2 ottelua enemmän pelattuna");
+});
+
+test("tp: unknown key falls back to the key string", () => {
+  assert.equal(tp("does.not.exist", 1, "en"), "does.not.exist");
+});
+
+// --- localName (team names) ---
+
+test("localName: default-only team renders the default in both langs", () => {
+  const team = { default: "Wild" };
+  assert.equal(localName(team, "en"), "Wild");
+  assert.equal(localName(team, "fi"), "Wild");
+});
+
+test("localName: ignores other-lang keys when no fi is present", () => {
+  const team = { default: "Dallas Stars", fr: "Stars de Dallas" };
+  assert.equal(localName(team, "fi"), "Dallas Stars");
+  assert.equal(localName(team, "en"), "Dallas Stars");
+});
+
+test("localName: fi wins when present (synthetic)", () => {
+  const team = { default: "Minnesota", fi: "Minnesota Villit" };
+  assert.equal(localName(team, "fi"), "Minnesota Villit");
+  assert.equal(localName(team, "en"), "Minnesota");
+});
+
+test("localName: null-safe", () => {
+  assert.equal(localName(null, "en"), "–");
+  assert.equal(localName(undefined, "fi"), "–");
+  assert.equal(localName({}, "en"), "–");
+});
+
+test("localName: string passes through", () => {
+  assert.equal(localName("Wild", "en"), "Wild");
 });

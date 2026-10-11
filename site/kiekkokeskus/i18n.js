@@ -94,3 +94,32 @@ export function wireToggle({ buttons, storage, html, onChange }) {
     });
   }
 }
+
+// tp: plural lookup. Picks `${key}.${cat}` where cat ∈ {zero, one, two, few, many, other}
+// (whichever Intl.PluralRules returns for the locale + n), falling back to `${key}.other`.
+// Then runs the result through t()'s {name} interpolation with { n, ...vars }.
+const PLURAL_RULES = { en: new Intl.PluralRules("en-US"), fi: new Intl.PluralRules("fi-FI") };
+
+export function tp(key, n, lang, vars) {
+  const rules = PLURAL_RULES[lang] ?? PLURAL_RULES.en;
+  const cat = rules.select(n);
+  const dict = STRINGS[lang] ?? STRINGS.en;
+  const template = dict[`${key}.${cat}`] ?? dict[`${key}.other`]
+    ?? STRINGS.en[`${key}.${cat}`] ?? STRINGS.en[`${key}.other`]
+    ?? key;
+  return template.replace(/\{(\w+)\}/g, (_, name) => {
+    if (name === "n") return String(n);
+    if (vars && Object.prototype.hasOwnProperty.call(vars, name)) return String(vars[name]);
+    return `{${name}}`;
+  });
+}
+
+// localName: for team names and anything else carrying a {default, fi?} object that is NOT a
+// person. People use renderName (first + last). FI → obj.fi ?? obj.default; EN → obj.default.
+// Null-safe. init-08 reuses for `teams[].name`.
+export function localName(obj, lang) {
+  if (obj == null) return "–";
+  if (typeof obj === "string") return obj;
+  if (lang === "fi") return obj.fi ?? obj.default ?? "–";
+  return obj.default ?? "–";
+}
