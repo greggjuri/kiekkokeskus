@@ -4,7 +4,24 @@ import { t } from "./i18n.js";
 import { isStale } from "./data.js";
 import { date } from "./format.js";
 
-export function renderHeader({ root, titleKey, subtitleKey, lang, onLangChange }) {
+// renderHeader options:
+//   titleKey:     string | null — looked up via t(titleKey, null, lang) when subtitle isn't given
+//   subtitle:     string | null — pre-resolved subtitle string from the caller (preferred;
+//                 mountPage calls subtitle(data, lang) and passes the result here)
+//   subtitleKey:  string | null — legacy convenience: falls back to t(subtitleKey, null, lang)
+//                 when subtitle is undefined. Never used by pages; the harness still uses it
+//                 for its own labels.
+//   hero:         { src, width, height, alt='' } | null — optional decorative image (ADR-040).
+//                 Rendered after the title block. decoding="async", NOT lazy-loaded (above fold).
+export function renderHeader({
+  root,
+  titleKey,
+  subtitle,
+  subtitleKey,
+  lang,
+  onLangChange,
+  hero,
+}) {
   const doc = root.ownerDocument;
   root.innerHTML = "";
   root.classList.add("kk-header");
@@ -19,11 +36,26 @@ export function renderHeader({ root, titleKey, subtitleKey, lang, onLangChange }
   if (titleKey) h1.textContent = t(titleKey, null, lang);
   root.appendChild(h1);
 
-  if (subtitleKey) {
+  const subtitleText =
+    typeof subtitle === "string" ? subtitle : subtitleKey ? t(subtitleKey, null, lang) : null;
+  if (subtitleText) {
     const sub = doc.createElement("p");
     sub.className = "kk-subtitle";
-    sub.textContent = t(subtitleKey, null, lang);
+    sub.textContent = subtitleText;
     root.appendChild(sub);
+  }
+
+  if (hero && hero.src) {
+    // ADR-040: decorative, pre-flattened on --kk-bg; alt="" so AT skips it; width+height set
+    // to prevent layout shift; decoding async; above the fold, so NOT lazy.
+    const img = doc.createElement("img");
+    img.className = "kk-hero";
+    img.src = hero.src;
+    img.alt = hero.alt ?? "";
+    if (hero.width) img.width = hero.width;
+    if (hero.height) img.height = hero.height;
+    img.decoding = "async";
+    root.appendChild(img);
   }
 
   // Language toggle
