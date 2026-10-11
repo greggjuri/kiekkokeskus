@@ -15,6 +15,17 @@ BASE = "https://jurigregg.com"
 HEALTH_PATH = "/data/kiekkokeskus/_health.json"
 BOLTS_PATH = "/data/kiekkokeskus/bolts.json"
 LEIJONAT_PATH = "/data/kiekkokeskus/leijonat.json"
+CSS_PATH = "/kiekkokeskus/kk.css"
+JS_PATH = "/kiekkokeskus/i18n.js"
+
+JS_CONTENT_TYPES = ("text/javascript", "application/javascript")
+
+
+def _is_js_content_type(ct: str) -> bool:
+    # Module scripts refuse anything but a JavaScript MIME type. Accept with or without a
+    # charset suffix (ADR-039 Verify item 2).
+    main = ct.split(";", 1)[0].strip().lower()
+    return main in JS_CONTENT_TYPES
 
 
 def _get(url: str) -> tuple[int, dict[str, str], bytes]:
@@ -155,6 +166,43 @@ def main() -> int:
         )
     except Exception as e:  # noqa: BLE001
         ok &= _check("leijonat endpoint", False, repr(e))
+
+    # Shared assets (ADR-039). Confirms Cache-Control: public, max-age=300 and the right MIME.
+    try:
+        status, headers, _ = _get(f"{BASE}{CSS_PATH}")
+        ok &= _check("GET kk.css 200", status == 200, f"status={status}")
+        cache = headers.get("cache-control", "")
+        ok &= _check(
+            "kk.css Cache-Control max-age=300",
+            "max-age=300" in cache,
+            f"cache-control={cache!r}",
+        )
+        ctype = headers.get("content-type", "")
+        ok &= _check(
+            "kk.css content-type text/css",
+            "text/css" in ctype.lower(),
+            f"content-type={ctype!r}",
+        )
+    except Exception as e:  # noqa: BLE001
+        ok &= _check("kk.css endpoint", False, repr(e))
+
+    try:
+        status, headers, _ = _get(f"{BASE}{JS_PATH}")
+        ok &= _check("GET i18n.js 200", status == 200, f"status={status}")
+        cache = headers.get("cache-control", "")
+        ok &= _check(
+            "i18n.js Cache-Control max-age=300",
+            "max-age=300" in cache,
+            f"cache-control={cache!r}",
+        )
+        ctype = headers.get("content-type", "")
+        ok &= _check(
+            "i18n.js is a JavaScript MIME type",
+            _is_js_content_type(ctype),
+            f"content-type={ctype!r}",
+        )
+    except Exception as e:  # noqa: BLE001
+        ok &= _check("i18n.js endpoint", False, repr(e))
 
     return 0 if ok else 1
 
