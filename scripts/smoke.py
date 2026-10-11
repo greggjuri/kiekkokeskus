@@ -17,8 +17,24 @@ BOLTS_PATH = "/data/kiekkokeskus/bolts.json"
 LEIJONAT_PATH = "/data/kiekkokeskus/leijonat.json"
 CSS_PATH = "/kiekkokeskus/kk.css"
 JS_PATH = "/kiekkokeskus/i18n.js"
+BOLTS_PAGE = "/bolts"
+BOLTS_PAGE_SLASH = "/bolts/"
+BOLTS_HERO = "/bolts/hero.webp"
 
 JS_CONTENT_TYPES = ("text/javascript", "application/javascript")
+
+
+def _is_html_content_type(ct: str) -> bool:
+    main = ct.split(";", 1)[0].strip().lower()
+    return main == "text/html"
+
+
+def _body_contains(body: bytes, needle: str) -> bool:
+    # Case-insensitive substring check on the decoded body; the body is HTML so UTF-8 is safe.
+    try:
+        return needle.lower() in body.decode("utf-8").lower()
+    except UnicodeDecodeError:
+        return False
 
 
 def _is_js_content_type(ct: str) -> bool:
@@ -203,6 +219,45 @@ def main() -> int:
         )
     except Exception as e:  # noqa: BLE001
         ok &= _check("i18n.js endpoint", False, repr(e))
+
+    # /bolts page (both /bolts and /bolts/ should serve the same HTML via add-index-html,
+    # ADR-021). Body must reference /kiekkokeskus/kk.css so the shared stylesheet actually
+    # loads.
+    for path, label in [(BOLTS_PAGE_SLASH, "GET /bolts/"), (BOLTS_PAGE, "GET /bolts")]:
+        try:
+            status, headers, body = _get(f"{BASE}{path}")
+            ok &= _check(label, status == 200, f"status={status}")
+            ctype = headers.get("content-type", "")
+            ok &= _check(
+                f"{label} content-type text/html",
+                _is_html_content_type(ctype),
+                f"content-type={ctype!r}",
+            )
+            ok &= _check(
+                f"{label} body links kk.css",
+                _body_contains(body, "/kiekkokeskus/kk.css"),
+            )
+        except Exception as e:  # noqa: BLE001
+            ok &= _check(f"{label} endpoint", False, repr(e))
+
+    # /bolts/hero.webp (ADR-040, ADR-039)
+    try:
+        status, headers, _ = _get(f"{BASE}{BOLTS_HERO}")
+        ok &= _check("GET hero.webp 200", status == 200, f"status={status}")
+        cache = headers.get("cache-control", "")
+        ok &= _check(
+            "hero.webp Cache-Control max-age=300",
+            "max-age=300" in cache,
+            f"cache-control={cache!r}",
+        )
+        ctype = headers.get("content-type", "")
+        ok &= _check(
+            "hero.webp content-type image/webp",
+            "image/webp" in ctype.lower(),
+            f"content-type={ctype!r}",
+        )
+    except Exception as e:  # noqa: BLE001
+        ok &= _check("hero.webp endpoint", False, repr(e))
 
     return 0 if ok else 1
 
