@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <!--
-  Dev harness. Never deployed (sync excludes _dev/*). Loads both goldens through the shared
-  modules and renders header + banners + pills + skater table + goalie table + footer twice.
+  Dev harness. Never deployed (sync excludes _dev/*). Mounts each page via mountPage so the
+  harness and the real pages exercise the same code path.
 
-  Query flags for exercising edge cases:
+  Query flags:
     ?now=<ISO>   override Date.now() for isStale (P1.2)
     ?lang=en|fi  pick language explicitly (langExplicit = true)
-
-  Served by scripts/preview.py; the preview server can also inject --fresh / --break.
 -->
 <html lang="en">
   <head>
@@ -60,26 +58,10 @@
 
     <script type="module">
       import { SKATER_COLUMNS, GOALIE_COLUMNS } from "/kiekkokeskus/columns.js";
-      import { resolveLang, t } from "/kiekkokeskus/i18n.js";
-      import { loadData } from "/kiekkokeskus/data.js";
-      import { readState, writeState } from "/kiekkokeskus/url.js";
-      import {
-        renderHeader,
-        renderPills,
-        renderStaleBanner,
-        renderErrorBanner,
-        hideBanner,
-        renderFooter,
-      } from "/kiekkokeskus/chrome.js";
-      import {
-        renderTable,
-        prepareSkaterRows,
-        prepareGoalieRows,
-        renderNoMatchIfEmpty,
-      } from "/kiekkokeskus/table.js";
+      import { t } from "/kiekkokeskus/i18n.js";
+      import { mountPage } from "/kiekkokeskus/page.js";
 
-      // P1.2: let the harness pin "now" so the stale banner can be exercised without touching
-      // the JSON. Missing or invalid ?now= falls back to new Date().
+      // P1.2 — pin "now" so the stale banner can be exercised without touching the JSON.
       function harnessNow() {
         const raw = new URL(window.location.href).searchParams.get("now");
         if (!raw) return new Date();
@@ -87,28 +69,8 @@
         return Number.isNaN(d.getTime()) ? new Date() : d;
       }
 
-      // Shared language across both preview sections (one toggle rules them all).
-      const resolved = resolveLang({
-        url: new URL(window.location.href),
-        storage: window.localStorage,
-        nav: window.navigator,
-      }).lang;
-
-      // Each section manages its own state (sort/pos/dir).
-      function pageSetup(section, { pageName, dataPath }) {
-        const BOLTS_SKATERS = SKATER_COLUMNS.filter((c) => c.key !== "team");
-        const skaterColumns = pageName === "leijonat" ? SKATER_COLUMNS : BOLTS_SKATERS;
-        const goalieColumns = pageName === "leijonat" ? GOALIE_COLUMNS : GOALIE_COLUMNS.filter((c) => c.key !== "team");
-
-        const q = new URL(window.location.href).search;
-        let state = readState({
-          search: q,
-          columns: skaterColumns,
-          goalieColumns,
-          resolvedLang: resolved,
-        });
-
-        const slots = {
+      function slotsFor(section) {
+        return {
           header: section.querySelector('[data-slot="header"]'),
           stale: section.querySelector('[data-slot="stale"]'),
           error: section.querySelector('[data-slot="error"]'),
@@ -119,134 +81,43 @@
           skatersTitle: section.querySelector('[data-slot="skaters-title"]'),
           goaliesTitle: section.querySelector('[data-slot="goalies-title"]'),
         };
-
-        async function render() {
-          document.documentElement.lang = state.lang;
-          slots.skatersTitle.textContent = t("table.skaters", null, state.lang);
-          slots.goaliesTitle.textContent = t("table.goalies", null, state.lang);
-
-          renderHeader({
-            root: slots.header,
-            titleKey: `page.${pageName}.title`,
-            subtitleKey: null,
-            lang: state.lang,
-            onLangChange: (next) => {
-              // Mark langExplicit on the state so later pill/sort writes keep ?lang= in the URL.
-              state = { ...state, lang: next, langExplicit: true };
-              writeState(state, {
-                history: window.history,
-                pathname: window.location.pathname,
-                langExplicit: true,
-              });
-              render();
-            },
-          });
-          // Fallback title (strings don't have page keys yet)
-          const h1 = slots.header.querySelector(".kk-title");
-          if (h1 && !h1.textContent)
-            h1.textContent = pageName === "bolts" ? "Bolts preview" : "Leijonat preview";
-
-          renderPills({
-            root: slots.pills,
-            state,
-            lang: state.lang,
-            onChange: (pos) => {
-              state = { ...state, pos };
-              writeState(state, {
-                history: window.history,
-                pathname: window.location.pathname,
-                langExplicit: state.langExplicit,
-              });
-              render();
-            },
-          });
-
-          const result = await loadData(dataPath, 1);
-          if (!result.ok) {
-            renderErrorBanner({ root: slots.error, lang: state.lang });
-            hideBanner(slots.stale);
-            renderTable({ root: slots.skaters, columns: skaterColumns, rows: [], state, lang: state.lang, onSortChange: () => {} });
-            renderTable({ root: slots.goalies, columns: goalieColumns, rows: [], state, lang: state.lang, onSortChange: () => {} });
-            renderFooter({ root: slots.footer, dataDate: null, lang: state.lang });
-            return;
-          }
-          slots.error.hidden = true;
-
-          renderStaleBanner({
-            root: slots.stale,
-            generatedAt: result.data.generatedAt,
-            lang: state.lang,
-            now: harnessNow(),
-          });
-
-          const skaters = prepareSkaterRows(
-            result.data.skaters ?? [],
-            { pos: state.pos, sortKey: state.sort, dir: state.dir, lang: state.lang },
-            skaterColumns,
-          );
-          renderTable({
-            root: slots.skaters,
-            columns: skaterColumns,
-            rows: skaters,
-            state: { sortKey: state.sort, dir: state.dir },
-            lang: state.lang,
-            onSortChange: (ns) => {
-              state = { ...state, sort: ns.sortKey, dir: ns.dir };
-              writeState(state, {
-                history: window.history,
-                pathname: window.location.pathname,
-                langExplicit: state.langExplicit,
-              });
-              render();
-            },
-          });
-          renderNoMatchIfEmpty({
-            root: slots.skaters,
-            rowsBefore: result.data.skaters ?? [],
-            rowsAfter: skaters,
-            columns: skaterColumns,
-            lang: state.lang,
-          });
-
-          const goalies = prepareGoalieRows(
-            result.data.goalies ?? [],
-            { sortKey: state.gsort, dir: state.gdir, lang: state.lang },
-            goalieColumns,
-          );
-          renderTable({
-            root: slots.goalies,
-            columns: goalieColumns,
-            rows: goalies,
-            state: { sortKey: state.gsort, dir: state.gdir },
-            lang: state.lang,
-            onSortChange: (ns) => {
-              state = { ...state, gsort: ns.sortKey, gdir: ns.dir };
-              writeState(state, {
-                history: window.history,
-                pathname: window.location.pathname,
-                langExplicit: state.langExplicit,
-              });
-              render();
-            },
-          });
-
-          renderFooter({
-            root: slots.footer,
-            dataDate: result.data.dataDate,
-            lang: state.lang,
-          });
-        }
-
-        render();
       }
 
-      pageSetup(document.querySelector('[data-page="bolts"]'), {
-        pageName: "bolts",
+      const BOLTS_SKATER_COLUMNS = SKATER_COLUMNS.filter((c) => c.key !== "team");
+      const BOLTS_GOALIE_COLUMNS = GOALIE_COLUMNS.filter((c) => c.key !== "team");
+
+      mountPage({
         dataPath: "/data/kiekkokeskus/bolts.json",
+        expectedSchemaVersion: 1,
+        columns: BOLTS_SKATER_COLUMNS,
+        goalieColumns: BOLTS_GOALIE_COLUMNS,
+        titleKey: null,
+        subtitle: (data, lang) => (data
+          ? "/bolts preview (fresh data)"
+          : "/bolts preview (loading or error)"),
+        hero: null,
+        now: harnessNow(),
+        slots: slotsFor(document.querySelector('[data-page="bolts"]')),
+        renderSections: ({ lang, slots }) => {
+          slots.skatersTitle.textContent = t("table.skaters", null, lang);
+          slots.goaliesTitle.textContent = t("table.goalies", null, lang);
+        },
       });
-      pageSetup(document.querySelector('[data-page="leijonat"]'), {
-        pageName: "leijonat",
+
+      mountPage({
         dataPath: "/data/kiekkokeskus/leijonat.json",
+        expectedSchemaVersion: 1,
+        columns: SKATER_COLUMNS,
+        goalieColumns: GOALIE_COLUMNS,
+        titleKey: null,
+        subtitle: () => "/leijonat preview",
+        hero: null,
+        now: harnessNow(),
+        slots: slotsFor(document.querySelector('[data-page="leijonat"]')),
+        renderSections: ({ lang, slots }) => {
+          slots.skatersTitle.textContent = t("table.skaters", null, lang);
+          slots.goaliesTitle.textContent = t("table.goalies", null, lang);
+        },
       });
     </script>
   </body>
