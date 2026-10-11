@@ -158,6 +158,14 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
   shape. The builder uses `bios.currentTeamAbbrev` as the authoritative `team` field, so the
   current output is stable, but **re-verify at the first FIN mid-season trade** and update
   ADR-037 with the observed shape (summing per-team rows, or passing through, or similar).
+- **Division-leader tile shows nothing useful when TBL leads** (PRP-07 live finding): the
+  tile currently renders `0` + `TBL · {pts}`, which is a tautology. The useful value when
+  TBL leads is the lead over **second place**. `bolts.json` doesn't carry the runner-up team,
+  so this needs a builder change. Candidate: **init-10 — bolts.json runnerUp**, adding
+  `standing.divisionLead.runnerUp: { team, pts, gamesInHand }` populated from `standings`
+  (the team with `divisionSequence == 2` in TBL's division). Field addition, no shape break,
+  no `schemaVersion` bump. Then the tile shows `signed(TBL.pts − runnerUp.pts)` + `{runnerUp.team}
+  · {runnerUp.pts}` + games-in-hand clause. Until init-10, the tile stays as it is.
 
 ## Notes
 
