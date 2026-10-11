@@ -6,10 +6,10 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 2 Data
 
 ### In Progress
-*(none)*
+- [ ] `init-05-leijonat-json` — executing PRP-05
 
 ### Up Next
-- [ ] `init-05-leijonat-json` — Finnish players across the NHL, last-night boxscore join
+- [ ] `init-06-shared-ui` — i18n, formatters, base CSS, disclaimer, stale banner (Phase 3)
 
 ---
 
@@ -119,7 +119,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-10 (init-04 complete; next: init-05)*
+*Last updated: 2026-10-10 (init-05 in progress)*
 
 ---
 
