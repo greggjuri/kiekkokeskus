@@ -3,13 +3,13 @@
 **Spec numbers:** `01`–`09` are reserved by the backlog below. **The next free number for a new,
 unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029).
 
-## Current: Phase 2 → Phase 3 handover
+## Current: Phase 3
 
 ### In Progress
-*(none)*
+- [ ] `init-06-shared-ui` — i18n, formatters, base CSS, disclaimer, stale banner (PRP-06)
 
 ### Up Next
-- [ ] `init-06-shared-ui` — i18n, formatters, base CSS, disclaimer, stale banner (Phase 3)
+- [ ] `init-07-bolts-page` (Phase 3)
 
 ---
 
