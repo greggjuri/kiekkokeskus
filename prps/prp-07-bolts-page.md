@@ -2,7 +2,7 @@
 
 **Created**: 2026-10-11
 **Initial**: `initials/init-07-bolts-page.md`
-**Status**: Ready
+**Status**: Complete
 **ADRs relied on**: ADR-002, 003, 015–018, 020–022, 024, 028, 030, 034–036, 038, 039
 **New ADRs this PRP adds**: ADR-040 (Page hero art) in `docs/DECISIONS.md`
 

@@ -580,6 +580,56 @@ tests/test_deploy_shared.py, ADR-022, ADR-024
 
 ---
 
+## ADR-040: Page hero art
+
+**Date**: 2026-10-11
+**Status**: Accepted
+
+### Decision
+- Each page has one decorative hero drawn by Juri: `/bolts` is the storm-over-Tampa skyline
+  with the monogram, `/leijonat` (init-08) will be the lion in the "SUOMI" ring.
+- **All-blue treatment**: the pencil sketch is converted offline to pale lines on `--kk-bg`
+  navy and saved as a flattened WebP (no alpha) at 900 px wide. That's about 40–55 KB,
+  against 100–140 KB with an alpha channel.
+- The skyline needed an extra pass. Inverting the tones makes the white lightning dark, so
+  the bolts were traced separately and laid back on top as the brightest strokes with a
+  slight glow.
+- Original photos are kept in `art/` (not deployed; it sits outside `site/`), so the
+  conversion can be redone.
+- Rejected: a navy-to-paper gradient showing the original drawing in its own colours (too
+  harsh against the dark page); the earlier wordmark sketches ("Tampa Bay Lightning
+  Hockey", "Leijonat Suomi Hockey"), which read as official team branding next to an
+  ADR-002 disclaimer.
+
+### Rendering rules
+- Rendered via `chrome.renderHeader`'s new optional `hero: { src, width, height, alt }`
+  param. Decorative, so `alt=""`. `width` + `height` set to avoid layout shift.
+  `decoding="async"`. **Not** lazy-loaded (above the fold).
+- Desktop: sits in a dedicated grid column between the title block and the EN|FI toggle,
+  height-capped at 140 px.
+- Below 600 px: switches to a background layer behind the title (`position: absolute; inset:
+  0; opacity: 0.25`), centered via `object-fit: contain`. The title stays fully legible.
+- The image is pre-flattened onto `--kk-bg`, so **it must sit on the page background,
+  never on a `.kk-card` surface**.
+
+### Verified live 2026-10-11
+`https://jurigregg.com/bolts/hero.webp` serves 200, `content-type: image/webp`,
+`cache-control: public, max-age=300`. Visually confirmed on Chrome desktop (hero right of
+title) and 500 px wide (hero behind title at 25% opacity). No layout shift observed.
+
+### Consequences
+- The heroes only work on the page background colour, never on a card surface.
+- A redraw means re-running the conversion. It's a manual step, not part of the build.
+- `art/` is committed to git so the source stays with the project, but excluded from every
+  deploy because it sits outside `site/`.
+
+### References
+initials/init-07-bolts-page.md, prps/prp-07-bolts-page.md,
+site/kiekkokeskus/chrome.js, site/kiekkokeskus/kk.css,
+site/bolts/hero.webp, art/bolts-hero-source.jpg
+
+---
+
 ## Template for New Decisions
 
 ```markdown

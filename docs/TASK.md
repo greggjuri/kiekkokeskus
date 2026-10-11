@@ -6,7 +6,7 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 3
 
 ### In Progress
-- [ ] `init-07-bolts-page` — /bolts page, shared page controller, hero (PRP-07)
+*(none)*
 
 ### Up Next
 - [ ] `init-08-leijonat-page` (Phase 3)
@@ -14,6 +14,26 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ---
 
 ## Recently Completed
+
+### init-07-bolts-page (2026-10-11)
+- [x] `jurigregg.com/bolts` live. Shared page controller split cleanly: `controller.js` (pure,
+      no DOM — reducer + single `loadData` + `writeState` + localStorage try/catch, tested with
+      a recording `render` stub) and `page.js` (`mountPage` DOM adapter). `view.js` is a pure
+      view model; `main.js` is thin DOM glue plus the renderers for tiles / lastGame /
+      nextGames / special. 4 standings tiles from Tampa's point of view (signed gaps,
+      TBL-leader branch), 3-card row, hero (`ADR-040`, pre-flattened WebP on `--kk-bg`).
+      `strings.js` gained ~30 keys (page title + subtitle + `subtitleNoSeason` for pre-fetch
+      renders, division/conference names, plural units + games-in-hand, result/decided,
+      opp.home/away). New helpers: `format.ordinal` / `format.season` + `i18n.tp` plural lookup
+      + `i18n.localName` team-name helper (replaces the `renderName` hack for teams). Deploy
+      wired shared-first then bolts, with `--exclude "*.test.js"` on `bolts/`. Smoke extended
+      to `/bolts` + `/bolts/hero.webp`. CI runs Node tests across both `site/kiekkokeskus/`
+      and `site/bolts/` globs. Fetch-once contract verified live on `jurigregg.com/bolts` via
+      `performance.getEntriesByType('resource')` — 1 request before and after toggling,
+      filtering, sorting. Today's live data has TBL leading the Atlantic — the "Division
+      leader / Divisioonan kärjessä" tile renders authentically. Housekeeping: CLAUDE.md and
+      TESTING.md's `node --test` command fixed to the glob form (PRP-06 finding). ADR-040 added
+      (PRP-07)
 
 ### init-06-shared-ui (2026-10-11)
 - [x] 10 framework-free ES modules under `site/kiekkokeskus/` + `kk.css` + dev harness +
@@ -147,7 +167,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-11 (init-06 complete; next: init-07)*
+*Last updated: 2026-10-11 (init-07 complete; next: init-08)*
 
 ---
 

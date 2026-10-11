@@ -116,6 +116,24 @@ Each row is at least one test. Add a row when DECISIONS-DATA gains an ADR.
 | 038 | stale boundary | `isStale(gen, gen ± 36h)` | false at 35h59m, true at 36h01m, false at exactly 36h00m |
 | 038 | schema mismatch | stub `fetchFn` returns `{ schemaVersion: 2 }` | `{ ok: false, reason: 'schema' }`, no throw |
 
+#### Page logic — init-07 additions
+
+| ADR | Gotcha | Fixture / input | Assert |
+|---|---|---|---|
+| 036 | signed gaps from Tampa's view | synthetic `divisionLead.gap: 4`; `playoffLine` out-of-position, `gap: 2` | tiles show `−4`; `Below the playoff line` + value `−2` |
+| 036 | TBL leads division | `divisionLead: {leader:'TBL', gap:0}` | tile value `0`, label `'Division leader'` (EN) / `'Divisioonan kärjessä'` (FI). Live-authentic 2026-10-11 (TBL first in Atlantic) |
+| 038 | signed(-0) renders `0` | `signed(-0, {en,fi})` | returns `'0'` — not `'-0'`, not `'+0'`; locked by Intl `exceptZero` |
+| 040 | games in hand both signs + zero | `gamesInHand` = `1`, `-2`, `0` | `' · 1 game in hand'`; `' · 2 more games played'`; clause omitted when `0` |
+| 015 | 0 GP state (page view) | `streak:null`, `lastGame:null`, `nextGames:[]`, `specialTeams.ppPct:null, ppRank:null` | no streak text in record sub; `view.lastGame === null`; empty nextGames; `special.pp.pct === '–'`; `rank === null` |
+| 040 | OT / SO suffix | `decidedIn` = `OT`, `SO`, `REG` | last-game suffix `'OT'` / `'SO'` (FI `'JA'` / `'VL'`); nothing on `REG` |
+| 040 | ordinals | 1, 2, 3, 4, 11, 12, 13, 21, 22, 101, 111 | EN `1st 2nd 3rd 4th 11th 12th 13th 21st 22nd 101st 111th`; FI `n.` |
+| 040 | plural units | `pts` = 1 and 6 | EN `1 pt` / `6 pts`; FI `1 p` / `6 p` |
+| 040 | fetch once | counting `fetchFn`, mount, then `setLang` + `setPos` + `setSort` + `setGsort` | `fetchFn.callCount === 1`; `render` called 5 times (1 start + 4 dispatches) with the same data identity. Live-verified on `/bolts` via `performance.getEntriesByType('resource')` |
+| 040 | langExplicit survives | `setLang('fi')` then `setPos('d')` then `setSort('g','desc')` | fake `history.replaceState` tape's last entry still contains `lang=fi` |
+| 040 | result badges | `result` `W` / `L` / `OTL` | EN `W` / `L` / `OTL`; FI `V` / `H` / `JH` |
+| 040 | opp.home vs opp.away via `localName` | `home: true/false` with `opponent.name = {default:'Wild'}` | EN `'vs Wild'` / `'at Wild'`; FI `'Wild (koti)'` / `'Wild (vieras)'` |
+| 040 | no placeholder leaks | flatten every string returned by `boltsView(golden, lang)` | none contains `{` or `}` — backstop for the subtitle `{season}` regression |
+
 ### Date and Time Boundaries
 Logic takes "now" as a parameter and never reads the clock (CLAUDE.md conventions). Test:
 - "Yesterday" in ET when the run time is just after midnight UTC, which is still the previous day
@@ -199,7 +217,7 @@ After any change to `site/`:
 - [ ] Stale banner shows when `generatedAt` is more than 36 h old (test with an old local JSON)
 - [ ] Disclaimer present in the footer
 - [ ] Phone width: tables scroll horizontally with the name column pinned
-- [ ] Safari and Chrome
+- [ ] Chrome (Safari parity dropped in init-07; see ADR-038 for why FI uses `fi-FI` Intl output and PRP-07 report for the rationale)
 
 ## Lessons Learned
 
