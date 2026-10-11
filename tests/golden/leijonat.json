@@ -1,0 +1,1190 @@
+{
+  "dataDate": "2026-10-09",
+  "generatedAt": "2026-10-10T14:00:12Z",
+  "goalies": [
+    {
+      "firstName": {
+        "default": "Ville"
+      },
+      "gaa": 0.0,
+      "gp": 1,
+      "gs": 0,
+      "l": 0,
+      "lastName": {
+        "default": "Husso"
+      },
+      "otl": 0,
+      "playerId": 8478024,
+      "rookie": false,
+      "so": 0,
+      "svPct": 1.0,
+      "team": "ANA",
+      "toi": 958,
+      "w": 0
+    },
+    {
+      "firstName": {
+        "default": "Kevin"
+      },
+      "gaa": 7.16015,
+      "gp": 5,
+      "gs": 4,
+      "l": 4,
+      "lastName": {
+        "default": "Lankinen"
+      },
+      "otl": 0,
+      "playerId": 8480947,
+      "rookie": false,
+      "so": 0,
+      "svPct": 0.79245,
+      "team": "VAN",
+      "toi": 11564,
+      "w": 1
+    },
+    {
+      "firstName": {
+        "default": "Ukko-Pekka"
+      },
+      "gaa": 4.02159,
+      "gp": 3,
+      "gs": 3,
+      "l": 2,
+      "lastName": {
+        "default": "Luukkonen"
+      },
+      "otl": 0,
+      "playerId": 8480045,
+      "rookie": false,
+      "so": 0,
+      "svPct": 0.78181,
+      "team": "BUF",
+      "toi": 10742,
+      "w": 1
+    },
+    {
+      "firstName": {
+        "default": "Leevi"
+      },
+      "gaa": 2.17873,
+      "gp": 4,
+      "gs": 2,
+      "l": 0,
+      "lastName": {
+        "default": "Meril\u00e4inen"
+      },
+      "otl": 0,
+      "playerId": 8482447,
+      "rookie": false,
+      "so": 0,
+      "svPct": 0.92857,
+      "team": "VAN",
+      "toi": 9914,
+      "w": 1
+    },
+    {
+      "firstName": {
+        "default": "Juuse"
+      },
+      "gaa": 2.71772,
+      "gp": 4,
+      "gs": 4,
+      "l": 1,
+      "lastName": {
+        "default": "Saros"
+      },
+      "otl": 1,
+      "playerId": 8477424,
+      "rookie": false,
+      "so": 0,
+      "svPct": 0.91538,
+      "team": "NSH",
+      "toi": 14571,
+      "w": 2
+    }
+  ],
+  "lastNight": {
+    "date": "2026-10-09",
+    "gamesCompleted": 4,
+    "goalies": [],
+    "skaters": [
+      {
+        "a": 1,
+        "firstName": {
+          "default": "Mikael"
+        },
+        "g": 1,
+        "game": {
+          "decidedIn": "REG",
+          "gameId": 2026020069,
+          "home": false,
+          "oppScore": 1,
+          "opponent": "WPG",
+          "result": "W",
+          "teamScore": 5
+        },
+        "lastName": {
+          "default": "Granlund"
+        },
+        "p": 2,
+        "pim": 0,
+        "playerId": 8475798,
+        "pm": 2,
+        "sog": 2,
+        "team": "ANA",
+        "toi": 991
+      },
+      {
+        "a": 1,
+        "firstName": {
+          "default": "Kaapo"
+        },
+        "g": 0,
+        "game": {
+          "decidedIn": "REG",
+          "gameId": 2026020066,
+          "home": false,
+          "oppScore": 3,
+          "opponent": "DET",
+          "result": "W",
+          "teamScore": 6
+        },
+        "lastName": {
+          "default": "Kakko"
+        },
+        "p": 1,
+        "pim": 0,
+        "playerId": 8481554,
+        "pm": 0,
+        "sog": 1,
+        "team": "SEA",
+        "toi": 830
+      }
+    ]
+  },
+  "schemaVersion": 1,
+  "season": "20262027",
+  "skaters": [
+    {
+      "a": 4,
+      "blocks": 3,
+      "faceoffPct": 0.60256,
+      "firstName": {
+        "default": "Sebastian"
+      },
+      "g": 5,
+      "gp": 6,
+      "gwg": 0,
+      "hits": 2,
+      "lastName": {
+        "default": "Aho"
+      },
+      "p": 9,
+      "pim": 10,
+      "playerId": 8478427,
+      "pm": 2,
+      "positionCode": "C",
+      "ppg": 3,
+      "ppp": 4,
+      "rookie": false,
+      "shg": 1,
+      "shootingPct": 0.22727,
+      "sog": 22,
+      "team": "CAR",
+      "toiPerGame": 1173
+    },
+    {
+      "a": 4,
+      "blocks": 3,
+      "faceoffPct": 0.54545,
+      "firstName": {
+        "default": "Mikko"
+      },
+      "g": 2,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 4,
+      "lastName": {
+        "default": "Rantanen"
+      },
+      "p": 6,
+      "pim": 4,
+      "playerId": 8478420,
+      "pm": 4,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 1,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.15384,
+      "sog": 13,
+      "team": "DAL",
+      "toiPerGame": 1227
+    },
+    {
+      "a": 3,
+      "blocks": 3,
+      "faceoffPct": 0.44,
+      "firstName": {
+        "default": "Mikael"
+      },
+      "g": 2,
+      "gp": 4,
+      "gwg": 1,
+      "hits": 0,
+      "lastName": {
+        "default": "Granlund"
+      },
+      "p": 5,
+      "pim": 0,
+      "playerId": 8475798,
+      "pm": 1,
+      "positionCode": "C",
+      "ppg": 1,
+      "ppp": 2,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.33333,
+      "sog": 6,
+      "team": "ANA",
+      "toiPerGame": 1188
+    },
+    {
+      "a": 4,
+      "blocks": 3,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Kaapo"
+      },
+      "g": 1,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 3,
+      "lastName": {
+        "default": "Kakko"
+      },
+      "p": 5,
+      "pim": 0,
+      "playerId": 8481554,
+      "pm": 3,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 1,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.25,
+      "sog": 4,
+      "team": "SEA",
+      "toiPerGame": 864
+    },
+    {
+      "a": 1,
+      "blocks": 5,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Artturi"
+      },
+      "g": 3,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 7,
+      "lastName": {
+        "default": "Lehkonen"
+      },
+      "p": 4,
+      "pim": 0,
+      "playerId": 8477476,
+      "pm": 4,
+      "positionCode": "L",
+      "ppg": 2,
+      "ppp": 2,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.42857,
+      "sog": 7,
+      "team": "COL",
+      "toiPerGame": 1127
+    },
+    {
+      "a": 0,
+      "blocks": 9,
+      "faceoffPct": 0.0,
+      "firstName": {
+        "default": "Eeli"
+      },
+      "g": 3,
+      "gp": 6,
+      "gwg": 0,
+      "hits": 10,
+      "lastName": {
+        "default": "Tolvanen"
+      },
+      "p": 3,
+      "pim": 2,
+      "playerId": 8480009,
+      "pm": 3,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.375,
+      "sog": 8,
+      "team": "NYR",
+      "toiPerGame": 796
+    },
+    {
+      "a": 1,
+      "blocks": 8,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Miro"
+      },
+      "g": 2,
+      "gp": 5,
+      "gwg": 1,
+      "hits": 1,
+      "lastName": {
+        "default": "Heiskanen"
+      },
+      "p": 3,
+      "pim": 4,
+      "playerId": 8480036,
+      "pm": 3,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.22222,
+      "sog": 9,
+      "team": "DAL",
+      "toiPerGame": 1464
+    },
+    {
+      "a": 1,
+      "blocks": 3,
+      "faceoffPct": 1.0,
+      "firstName": {
+        "default": "Kasperi"
+      },
+      "g": 2,
+      "gp": 5,
+      "gwg": 1,
+      "hits": 6,
+      "lastName": {
+        "default": "Kapanen"
+      },
+      "p": 3,
+      "pim": 2,
+      "playerId": 8477953,
+      "pm": -4,
+      "positionCode": "R",
+      "ppg": 1,
+      "ppp": 2,
+      "rookie": false,
+      "shg": 1,
+      "shootingPct": 0.22222,
+      "sog": 9,
+      "team": "EDM",
+      "toiPerGame": 1060
+    },
+    {
+      "a": 2,
+      "blocks": 1,
+      "faceoffPct": 0.5,
+      "firstName": {
+        "default": "Erik"
+      },
+      "g": 1,
+      "gp": 3,
+      "gwg": 0,
+      "hits": 1,
+      "lastName": {
+        "default": "Haula"
+      },
+      "p": 3,
+      "pim": 0,
+      "playerId": 8475287,
+      "pm": -1,
+      "positionCode": "L",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.125,
+      "sog": 8,
+      "team": "LAK",
+      "toiPerGame": 926
+    },
+    {
+      "a": 2,
+      "blocks": 2,
+      "faceoffPct": 0.54285,
+      "firstName": {
+        "default": "Roope"
+      },
+      "g": 1,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 8,
+      "lastName": {
+        "default": "Hintz"
+      },
+      "p": 3,
+      "pim": 0,
+      "playerId": 8478449,
+      "pm": 3,
+      "positionCode": "C",
+      "ppg": 1,
+      "ppp": 1,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.1,
+      "sog": 10,
+      "team": "DAL",
+      "toiPerGame": 1010
+    },
+    {
+      "a": 0,
+      "blocks": 5,
+      "faceoffPct": 0.5,
+      "firstName": {
+        "default": "Eetu"
+      },
+      "g": 2,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 9,
+      "lastName": {
+        "default": "Luostarinen"
+      },
+      "p": 2,
+      "pim": 4,
+      "playerId": 8480185,
+      "pm": -1,
+      "positionCode": "C",
+      "ppg": 1,
+      "ppp": 1,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.25,
+      "sog": 8,
+      "team": "FLA",
+      "toiPerGame": 929
+    },
+    {
+      "a": 1,
+      "blocks": 2,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Ville"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 0,
+      "lastName": {
+        "default": "Koivunen"
+      },
+      "p": 2,
+      "pim": 4,
+      "playerId": 8482758,
+      "pm": 5,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.25,
+      "sog": 4,
+      "team": "PIT",
+      "toiPerGame": 820
+    },
+    {
+      "a": 2,
+      "blocks": 1,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Jesperi"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 3,
+      "lastName": {
+        "default": "Kotkaniemi"
+      },
+      "p": 2,
+      "pim": 4,
+      "playerId": 8480829,
+      "pm": 0,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 1,
+      "team": "CAR",
+      "toiPerGame": 688
+    },
+    {
+      "a": 2,
+      "blocks": 1,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Matias"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 1,
+      "lastName": {
+        "default": "Maccelli"
+      },
+      "p": 2,
+      "pim": 2,
+      "playerId": 8481711,
+      "pm": 1,
+      "positionCode": "L",
+      "ppg": 0,
+      "ppp": 1,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 6,
+      "team": "NYI",
+      "toiPerGame": 926
+    },
+    {
+      "a": 2,
+      "blocks": 1,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Teuvo"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 1,
+      "lastName": {
+        "cs": "Ter\u00e4v\u00e4inen",
+        "default": "Teravainen",
+        "fi": "Ter\u00e4v\u00e4inen",
+        "sk": "Ter\u00e4v\u00e4inen",
+        "sv": "Ter\u00e4v\u00e4inen"
+      },
+      "p": 2,
+      "pim": 0,
+      "playerId": 8476882,
+      "pm": 0,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 2,
+      "team": "CHI",
+      "toiPerGame": 764
+    },
+    {
+      "a": 0,
+      "blocks": 5,
+      "faceoffPct": 0.33333,
+      "firstName": {
+        "default": "Joel"
+      },
+      "g": 1,
+      "gp": 3,
+      "gwg": 0,
+      "hits": 4,
+      "lastName": {
+        "default": "Armia"
+      },
+      "p": 1,
+      "pim": 0,
+      "playerId": 8476469,
+      "pm": 0,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 1,
+      "shootingPct": 0.25,
+      "sog": 4,
+      "team": "LAK",
+      "toiPerGame": 777
+    },
+    {
+      "a": 0,
+      "blocks": 1,
+      "faceoffPct": 0.0,
+      "firstName": {
+        "default": "Konsta"
+      },
+      "g": 1,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 4,
+      "lastName": {
+        "default": "Helenius"
+      },
+      "p": 1,
+      "pim": 0,
+      "playerId": 8484797,
+      "pm": -1,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": true,
+      "shg": 0,
+      "shootingPct": 0.16666,
+      "sog": 6,
+      "team": "BUF",
+      "toiPerGame": 846
+    },
+    {
+      "a": 0,
+      "blocks": 1,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Joel"
+      },
+      "g": 1,
+      "gp": 2,
+      "gwg": 0,
+      "hits": 3,
+      "lastName": {
+        "default": "Kiviranta"
+      },
+      "p": 1,
+      "pim": 0,
+      "playerId": 8481641,
+      "pm": 1,
+      "positionCode": "L",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.33333,
+      "sog": 3,
+      "team": "DAL",
+      "toiPerGame": 627
+    },
+    {
+      "a": 0,
+      "blocks": 7,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Rasmus"
+      },
+      "g": 1,
+      "gp": 3,
+      "gwg": 0,
+      "hits": 4,
+      "lastName": {
+        "default": "Ristolainen"
+      },
+      "p": 1,
+      "pim": 0,
+      "playerId": 8477499,
+      "pm": 0,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.25,
+      "sog": 4,
+      "team": "PHI",
+      "toiPerGame": 1096
+    },
+    {
+      "a": 0,
+      "blocks": 0,
+      "faceoffPct": 0.60606,
+      "firstName": {
+        "default": "Aatu"
+      },
+      "g": 1,
+      "gp": 3,
+      "gwg": 0,
+      "hits": 5,
+      "lastName": {
+        "default": "R\u00e4ty"
+      },
+      "p": 1,
+      "pim": 2,
+      "playerId": 8482691,
+      "pm": -1,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.33333,
+      "sog": 3,
+      "team": "VAN",
+      "toiPerGame": 560
+    },
+    {
+      "a": 1,
+      "blocks": 2,
+      "faceoffPct": 0.51351,
+      "firstName": {
+        "default": "Anton"
+      },
+      "g": 0,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 7,
+      "lastName": {
+        "default": "Lundell"
+      },
+      "p": 1,
+      "pim": 2,
+      "playerId": 8482113,
+      "pm": -1,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 16,
+      "team": "FLA",
+      "toiPerGame": 1144
+    },
+    {
+      "a": 1,
+      "blocks": 4,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Olli"
+      },
+      "g": 0,
+      "gp": 4,
+      "gwg": 0,
+      "hits": 0,
+      "lastName": {
+        "cs": "M\u00e4\u00e4tt\u00e4",
+        "default": "Maatta",
+        "fi": "M\u00e4\u00e4tt\u00e4",
+        "sk": "M\u00e4\u00e4tt\u00e4",
+        "sv": "M\u00e4\u00e4tt\u00e4"
+      },
+      "p": 1,
+      "pim": 2,
+      "playerId": 8476874,
+      "pm": 1,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 1,
+      "team": "MIN",
+      "toiPerGame": 1284
+    },
+    {
+      "a": 0,
+      "blocks": 2,
+      "faceoffPct": 0.53846,
+      "firstName": {
+        "default": "Aleksander"
+      },
+      "g": 0,
+      "gp": 2,
+      "gwg": 0,
+      "hits": 1,
+      "lastName": {
+        "default": "Barkov"
+      },
+      "p": 0,
+      "pim": 0,
+      "playerId": 8477493,
+      "pm": 0,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 2,
+      "team": "FLA",
+      "toiPerGame": 893
+    },
+    {
+      "a": 0,
+      "blocks": 0,
+      "faceoffPct": 0.2,
+      "firstName": {
+        "default": "Samuel"
+      },
+      "g": 0,
+      "gp": 1,
+      "gwg": 0,
+      "hits": 3,
+      "lastName": {
+        "default": "Helenius"
+      },
+      "p": 0,
+      "pim": 0,
+      "playerId": 8482726,
+      "pm": 0,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 1,
+      "team": "LAK",
+      "toiPerGame": 419
+    },
+    {
+      "a": 0,
+      "blocks": 4,
+      "faceoffPct": 0.67346,
+      "firstName": {
+        "default": "Arttu"
+      },
+      "g": 0,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 13,
+      "lastName": {
+        "default": "Hyry"
+      },
+      "p": 0,
+      "pim": 7,
+      "playerId": 8484938,
+      "pm": -1,
+      "positionCode": "R",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": true,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 4,
+      "team": "DAL",
+      "toiPerGame": 847
+    },
+    {
+      "a": 0,
+      "blocks": 0,
+      "faceoffPct": 0.5,
+      "firstName": {
+        "default": "Brad"
+      },
+      "g": 0,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 3,
+      "lastName": {
+        "default": "Lambert"
+      },
+      "p": 0,
+      "pim": 2,
+      "playerId": 8483471,
+      "pm": -3,
+      "positionCode": "C",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": true,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 3,
+      "team": "WPG",
+      "toiPerGame": 636
+    },
+    {
+      "a": 0,
+      "blocks": 11,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Esa"
+      },
+      "g": 0,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 3,
+      "lastName": {
+        "default": "Lindell"
+      },
+      "p": 0,
+      "pim": 2,
+      "playerId": 8476902,
+      "pm": 4,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 2,
+      "team": "DAL",
+      "toiPerGame": 1188
+    },
+    {
+      "a": 0,
+      "blocks": 8,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Nikolas"
+      },
+      "g": 0,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 4,
+      "lastName": {
+        "default": "Matinpalo"
+      },
+      "p": 0,
+      "pim": 4,
+      "playerId": 8484321,
+      "pm": 2,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 4,
+      "team": "OTT",
+      "toiPerGame": 1065
+    },
+    {
+      "a": 0,
+      "blocks": 6,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Niko"
+      },
+      "g": 0,
+      "gp": 5,
+      "gwg": 0,
+      "hits": 2,
+      "lastName": {
+        "default": "Mikkola"
+      },
+      "p": 0,
+      "pim": 2,
+      "playerId": 8478859,
+      "pm": -1,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": false,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 9,
+      "team": "FLA",
+      "toiPerGame": 1194
+    },
+    {
+      "a": 0,
+      "blocks": 4,
+      "faceoffPct": null,
+      "firstName": {
+        "default": "Ville"
+      },
+      "g": 0,
+      "gp": 2,
+      "gwg": 0,
+      "hits": 0,
+      "lastName": {
+        "default": "Ottavainen"
+      },
+      "p": 0,
+      "pim": 2,
+      "playerId": 8482866,
+      "pm": 4,
+      "positionCode": "D",
+      "ppg": 0,
+      "ppp": 0,
+      "rookie": true,
+      "shg": 0,
+      "shootingPct": 0.0,
+      "sog": 2,
+      "team": "SEA",
+      "toiPerGame": 885
+    }
+  ],
+  "teams": [
+    {
+      "abbrev": "DAL",
+      "goalies": 0,
+      "name": {
+        "default": "Dallas Stars",
+        "fr": "Stars de Dallas"
+      },
+      "skaters": 6
+    },
+    {
+      "abbrev": "FLA",
+      "goalies": 0,
+      "name": {
+        "default": "Florida Panthers",
+        "fr": "Panthers de la Floride"
+      },
+      "skaters": 4
+    },
+    {
+      "abbrev": "LAK",
+      "goalies": 0,
+      "name": {
+        "default": "Los Angeles Kings",
+        "fr": "Kings de Los Angeles"
+      },
+      "skaters": 3
+    },
+    {
+      "abbrev": "VAN",
+      "goalies": 2,
+      "name": {
+        "default": "Vancouver Canucks",
+        "fr": "Canucks de Vancouver"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "ANA",
+      "goalies": 1,
+      "name": {
+        "default": "Anaheim Ducks",
+        "fr": "Ducks d'Anaheim"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "BUF",
+      "goalies": 1,
+      "name": {
+        "default": "Buffalo Sabres",
+        "fr": "Sabres de Buffalo"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "CAR",
+      "goalies": 0,
+      "name": {
+        "default": "Carolina Hurricanes",
+        "fr": "Hurricanes de la Caroline"
+      },
+      "skaters": 2
+    },
+    {
+      "abbrev": "SEA",
+      "goalies": 0,
+      "name": {
+        "default": "Seattle Kraken",
+        "fr": "Kraken de Seattle"
+      },
+      "skaters": 2
+    },
+    {
+      "abbrev": "CHI",
+      "goalies": 0,
+      "name": {
+        "default": "Chicago Blackhawks",
+        "fr": "Blackhawks de Chicago"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "COL",
+      "goalies": 0,
+      "name": {
+        "default": "Colorado Avalanche",
+        "fr": "Avalanche du Colorado"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "EDM",
+      "goalies": 0,
+      "name": {
+        "default": "Edmonton Oilers",
+        "fr": "Oilers d'Edmonton"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "MIN",
+      "goalies": 0,
+      "name": {
+        "default": "Minnesota Wild",
+        "fr": "Wild du Minnesota"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "NSH",
+      "goalies": 1,
+      "name": {
+        "default": "Nashville Predators",
+        "fr": "Predators de Nashville"
+      },
+      "skaters": 0
+    },
+    {
+      "abbrev": "NYI",
+      "goalies": 0,
+      "name": {
+        "default": "New York Islanders",
+        "fr": "Islanders de New York"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "NYR",
+      "goalies": 0,
+      "name": {
+        "default": "New York Rangers",
+        "fr": "Rangers de New York"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "OTT",
+      "goalies": 0,
+      "name": {
+        "default": "Ottawa Senators",
+        "fr": "S\u00e9nateurs d'Ottawa"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "PHI",
+      "goalies": 0,
+      "name": {
+        "default": "Philadelphia Flyers",
+        "fr": "Flyers de Philadelphie"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "PIT",
+      "goalies": 0,
+      "name": {
+        "default": "Pittsburgh Penguins",
+        "fr": "Penguins de Pittsburgh"
+      },
+      "skaters": 1
+    },
+    {
+      "abbrev": "WPG",
+      "goalies": 0,
+      "name": {
+        "default": "Winnipeg Jets",
+        "fr": "Jets de Winnipeg"
+      },
+      "skaters": 1
+    }
+  ]
+}
