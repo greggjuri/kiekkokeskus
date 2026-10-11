@@ -4,30 +4,33 @@
    Split from kk.css in init-07 (ADR-034): tokens, base, header, pills, banners, tables, and
    footer stay in kk.css; this file holds everything a page lays over that base. */
 
-/* Hero (ADR-040): decorative; pre-flattened on --kk-bg; never on a .kk-card. Desktop: sits in
-   the middle grid area, height-capped. <600 px: switches to a background behind the title. */
+/* Hero (ADR-040): decorative; pre-flattened on --kk-bg; never on a .kk-card.
+   Desktop: fills the right-hand hero grid cell (45% of header width, ~240 px tall).
+   <600 px: switches to a background behind the title with explicit width — position:absolute
+   + inset:0 collapsed to 0×100 on real phone widths without an explicit width (PRP-07
+   follow-up finding). */
 .kk-hero {
   grid-area: hero;
   display: block;
-  height: auto;
   width: auto;
-  max-height: 140px;
-  max-width: 220px;
+  height: 240px;
+  max-width: 100%;
   justify-self: end;
   align-self: center;
 }
+@media (max-width: 900px) { .kk-hero { height: 180px; } }
 @media (max-width: 600px) {
   .kk-header { position: relative; }
   .kk-hero {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(70%, 260px);
+    height: auto;
     opacity: 0.25;
     z-index: 0;
     pointer-events: none;
-    max-height: none;
     max-width: none;
   }
   .kk-header > *:not(.kk-hero) { position: relative; z-index: 1; }

@@ -13,6 +13,10 @@ import { date } from "./format.js";
 //                 for its own labels.
 //   hero:         { src, width, height, alt='' } | null — optional decorative image (ADR-040).
 //                 Rendered after the title block. decoding="async", NOT lazy-loaded (above fold).
+// renderHeader builds the header DOM once (on first call for a given `root`) and patches it
+// in place on every subsequent call. This keeps the hero <img> alive across language toggles,
+// pill clicks and sort clicks — otherwise every re-render would rebuild the img, re-decode
+// it, and visibly flash the whole header.
 export function renderHeader({
   root,
   titleKey,
@@ -23,56 +27,75 @@ export function renderHeader({
   hero,
 }) {
   const doc = root.ownerDocument;
-  root.innerHTML = "";
-  root.classList.add("kk-header");
 
-  const crumb = doc.createElement("div");
-  crumb.className = "kk-crumb";
-  crumb.textContent = t("nav.crumb", null, lang);
-  root.appendChild(crumb);
+  // Build once.
+  if (!root.dataset.kkHeaderBuilt) {
+    root.innerHTML = "";
+    root.classList.add("kk-header");
 
-  const h1 = doc.createElement("h1");
-  h1.className = "kk-title";
-  if (titleKey) h1.textContent = t(titleKey, null, lang);
-  root.appendChild(h1);
+    const crumb = doc.createElement("div");
+    crumb.className = "kk-crumb";
+    root.appendChild(crumb);
 
+    const h1 = doc.createElement("h1");
+    h1.className = "kk-title";
+    root.appendChild(h1);
+
+    const sub = doc.createElement("p");
+    sub.className = "kk-subtitle";
+    root.appendChild(sub);
+
+    if (hero && hero.src) {
+      // ADR-040: decorative, pre-flattened on --kk-bg; alt="" so AT skips it; width+height
+      // set to prevent layout shift; decoding async; above the fold, so NOT lazy.
+      const img = doc.createElement("img");
+      img.className = "kk-hero";
+      img.src = hero.src;
+      img.alt = hero.alt ?? "";
+      if (hero.width) img.width = hero.width;
+      if (hero.height) img.height = hero.height;
+      img.decoding = "async";
+      root.appendChild(img);
+    }
+
+    const toggle = doc.createElement("div");
+    toggle.className = "kk-lang";
+    toggle.setAttribute("role", "group");
+    for (const code of ["en", "fi"]) {
+      const btn = doc.createElement("button");
+      btn.type = "button";
+      btn.dataset.lang = code;
+      btn.textContent = code.toUpperCase();
+      btn.addEventListener("click", () => onLangChange?.(code));
+      toggle.appendChild(btn);
+    }
+    root.appendChild(toggle);
+
+    root.dataset.kkHeaderBuilt = "1";
+  }
+
+  // Patch text + aria-pressed on every call. The hero <img> is never touched.
+  root.querySelector(".kk-crumb").textContent = t("nav.crumb", null, lang);
+
+  const h1 = root.querySelector(".kk-title");
+  h1.textContent = titleKey ? t(titleKey, null, lang) : "";
+
+  const sub = root.querySelector(".kk-subtitle");
   const subtitleText =
     typeof subtitle === "string" ? subtitle : subtitleKey ? t(subtitleKey, null, lang) : null;
   if (subtitleText) {
-    const sub = doc.createElement("p");
-    sub.className = "kk-subtitle";
     sub.textContent = subtitleText;
-    root.appendChild(sub);
+    sub.hidden = false;
+  } else {
+    sub.textContent = "";
+    sub.hidden = true;
   }
 
-  if (hero && hero.src) {
-    // ADR-040: decorative, pre-flattened on --kk-bg; alt="" so AT skips it; width+height set
-    // to prevent layout shift; decoding async; above the fold, so NOT lazy.
-    const img = doc.createElement("img");
-    img.className = "kk-hero";
-    img.src = hero.src;
-    img.alt = hero.alt ?? "";
-    if (hero.width) img.width = hero.width;
-    if (hero.height) img.height = hero.height;
-    img.decoding = "async";
-    root.appendChild(img);
-  }
-
-  // Language toggle
-  const toggle = doc.createElement("div");
-  toggle.className = "kk-lang";
-  toggle.setAttribute("role", "group");
+  const toggle = root.querySelector(".kk-lang");
   toggle.setAttribute("aria-label", t("lang.group", null, lang));
-  for (const code of ["en", "fi"]) {
-    const btn = doc.createElement("button");
-    btn.type = "button";
-    btn.dataset.lang = code;
-    btn.textContent = code.toUpperCase();
-    btn.setAttribute("aria-pressed", lang === code ? "true" : "false");
-    btn.addEventListener("click", () => onLangChange?.(code));
-    toggle.appendChild(btn);
+  for (const btn of toggle.querySelectorAll("button")) {
+    btn.setAttribute("aria-pressed", btn.dataset.lang === lang ? "true" : "false");
   }
-  root.appendChild(toggle);
 }
 
 export function renderPills({ root, state, onChange, lang }) {

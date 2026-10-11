@@ -52,17 +52,27 @@ main {
 /* Header */
 .kk-header {
   display: grid;
-  /* minmax(0, 1fr) lets the title column shrink below its min-content so a very long title
-     doesn't push the grid past its container on narrow viewports. The hero column is auto
-     (zero-width when no hero is given, so pages without one lay out the same as init-06). */
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  /* Title column shrinks below min-content (minmax 0,1fr); hero cell gets a generous ~45%
+     share so the sketch (ADR-040) dominates the right side; toggle sits in the top-right
+     corner above the hero. On mobile the whole template collapses — see below. */
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 45%) auto;
   grid-template-areas:
-    "crumb    crumb  toggle"
-    "title    hero   toggle"
-    "subtitle hero   .";
+    "crumb    .     toggle"
+    "title    hero  toggle"
+    "subtitle hero  .";
   gap: 8px 16px;
   align-items: baseline;
   padding: 16px 0 24px;
+}
+/* On mobile the hero becomes a background layer (kk-page.css) and the layout collapses. */
+@media (max-width: 600px) {
+  .kk-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "crumb    toggle"
+      "title    toggle"
+      "subtitle .";
+  }
 }
 
 .kk-crumb {
@@ -80,7 +90,8 @@ main {
   line-height: 1.05;
   margin: 0;
   letter-spacing: 0.01em;
-  text-transform: uppercase;
+  /* Lowercase to match URL + ADR-040 hero wordmarks ("bolts", "leijonat"). */
+  text-transform: lowercase;
   min-width: 0;
   overflow-wrap: anywhere;
 }
