@@ -2,7 +2,7 @@
 
 **Created**: 2026-10-10
 **Initial**: `initials/init-05-leijonat-json.md`
-**Status**: Ready
+**Status**: Complete
 **ADRs**: ADR-003, 006, 010–018, 022, 028, 030, 033, 035; **adds ADR-037** (DECISIONS-DATA.md)
 
 ---

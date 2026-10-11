@@ -87,6 +87,17 @@ Each row is at least one test. Add a row when DECISIONS-DATA gains an ADR.
 | 036 | playoff line — in-position reference is wildcard 3 | real standings with TBL in Atlantic top-3 | reference team is conference `wildcardSequence==3` |
 | 036 | playoff line — out-of-position reference is wildcard 2 | synthetic standings | reference team is conference `wildcardSequence==2` |
 | 036 | gap sign preserved | synthetic standings with equal points / tiebreaker ordering | `gap` can be 0 or negative; never `abs()`-ed |
+| 037 | umlaut names via club-stats fan-out | real MIN + CHI club-stats, 2026-10-10 | `Olli Määttä` and `Teuvo Teräväinen` carry `fi` key through to `leijonat.json` |
+| 037 | name step 1 — scan all fan-out payloads | crafted scenario | Finn found via a non-current-team's club-stats (just-traded case) |
+| 037 | name step 2 — suffix-strip fallback | bios row with `*FullName == "<first> <lastName>"` | emits `{default: first}` + `{default: lastName}`, warning logged |
+| 037 | name step 3 — suffix mismatch raises | crafted bios row where fullName doesn't end with `" " + lastName` | `NameSuffixMismatch` raised; run fails |
+| 037 | preseason-only bios filter | FIN bios with `gameTypeId=1` | returns 0 FIN players — no URL change needed |
+| 037 | OT decidedIn | real boxscore `2026020025` (CAR @ PHI 2026-10-03) | `gameOutcome.lastPeriodType == "OT"`; builder derives loser's `result == "OTL"` from score |
+| 037 | SO decidedIn | real boxscore `2026020065` (TOR @ VGK 2026-10-08) | `lastPeriodType == "SO"`; loser's `result == "OTL"` |
+| 037 | fan-out ordering | handler orchestration | bios fetches complete before any non-TBL `club-stats/{team}` fetch |
+| 037 | two independent builders — bolts fails | mock `build_bolts.build` raises | `leijonat.json` written; `bolts.json` + `_health.json` not; raises |
+| 037 | two independent builders — leijonat fails | mock `build_leijonat.build` raises | `bolts.json` written; `leijonat.json` + `_health.json` not; raises |
+| 037 | bios duplicate playerId | 2-page split with repeated row | `BiosDuplicateError` raised; no silent dedupe (ADR-011) |
 
 ### Date and Time Boundaries
 Logic takes "now" as a parameter and never reads the clock (CLAUDE.md conventions). Test:

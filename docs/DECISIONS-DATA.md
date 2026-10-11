@@ -312,6 +312,97 @@ init-04-bolts-json.md, prps/prp-04-bolts-json.md
 
 ---
 
+## ADR-037: Field sources for `leijonat.json`
+
+**Date**: 2026-10-10
+**Status**: Accepted
+
+### Context
+`/leijonat` lists every Finnish player in the NHL — their season rows across all teams, plus
+last night's performances. The naming is tricky: stats REST ASCII-fies most Finnish names
+(`Olli Maatta`, `Teuvo Teravainen`) with occasional umlauts (`Aatu Räty`), so we need a reliable
+source for `Määttä`/`Teräväinen`/`Meriläinen` etc. The rookie flag has no inline field but
+`isRookie=1` works as a cayenneExp filter.
+
+### Decision — source map
+
+| Section / field | Source | Notes |
+|---|---|---|
+| Row set | `skater/bios` + `goalie/bios` with `nationalityCode="FIN"` (ADR-011) | ADR-030 full rows; never drop a Finn |
+| Season skater integers (`gp,g,a,p,pm,pim,sog,ppg,shg,gwg,ppp`) | FIN-filtered `skater/summary` | fractions / `None` on absent fields per ADR-015 |
+| `toiPerGame` | summary `timeOnIcePerGame` → **int seconds** | float input, ADR-017 |
+| `shootingPct` | summary `shootingPct` | fraction 0–1 (ADR-016) |
+| `faceoffPct` | FIN-filtered `skater/faceoffpercentages` → `null` when `totalFaceoffs == 0` | ADR-035 rule reused |
+| `hits`, `blocks` | FIN-filtered `skater/realtime` → `hits`, `blockedShots` | |
+| `rookie` | separate 1-page fetch with `cayenneExp ... and isRookie=1` → ID set; `playerId in rookie_ids` | **non-null bool**; failed rookie fetch fails the run (CLAUDE.md "never silently catch") |
+| `team` | **bios `currentTeamAbbrev`** | string; summary `teamAbbrevs` not used (see "Traded Finns" below) |
+| `positionCode` | bios | C/L/R/D |
+| Goalie integers (`gp,gs,w,l,otl,so`) | FIN-filtered `goalie/summary` | field names on NHL side are literal |
+| `svPct`, `gaa`, `toi` | goalie summary `savePct`, `goalsAgainstAverage`, `timeOnIce` | fraction / float / int total seconds |
+| `teams[].name` | standings `teamName` (localized `{default, fr?}`, no `fi` observed) | |
+| `lastNight.gamesCompleted` | **`schedule.gameWeek` filtered to `date == dataDate`** first (ADR-033 — 7-day window), then `gameType == 2 and gameState ∈ {OFF, FINAL}` | Fix 6 |
+| `lastNight.skaters[]` | boxscore skaters ⋈ Finn set, `points ≥ 1` (ADR-012) | |
+| `lastNight.goalies[]` | boxscore goalies ⋈ Finn set, `starter == True` (ADR-012) | relief goalies excluded |
+| `game.result` | **derived from score + `gameOutcome.lastPeriodType`**: `me > opp` → W; `me < opp` and `lastPeriodType ∈ {OT, SO}` → OTL; else L | **Never from goalie `decision`** — that field is passed through raw |
+| `game.decidedIn` | `gameOutcome.lastPeriodType` | REG / OT / SO / None |
+
+### Name resolution per `playerId` (Fix 4)
+Primary stats REST sources ASCII-fy most Finnish names. Resolve names in this order:
+
+1. **Scan every club-stats payload** in `bodies["club-stats-by-team"]` (not just the Finn's
+   current team's) — catches a just-traded Finn who still sits in the old team's roster.
+   club-stats carries `firstName` and `lastName` as localized objects with `fi`/`cs`/`sk`/`sv`
+   keys where available (verified: `MIN.Maatta → {default: "Maatta", fi: "Määttä"}`;
+   `CHI.Teravainen → fi: "Teräväinen"`).
+2. **Fallback** via bios: use `bios.lastName` as `{default}`; take `*FullName` and check that it
+   ends with `" " + lastName`; if so, strip that suffix and emit `firstName: {default: stripped}`.
+   Log a warning with the `playerId` and `source: "bios_suffix_strip"`.
+3. **Suffix mismatch** → raise `NameSuffixMismatch`. Payload surprise; whole run fails;
+   same posture as `BiosDuplicateError` (ADR-011).
+
+Resolved names are localized `{default, fi?, ...}` objects (ADR-018). Builder never picks a
+language (ADR-028).
+
+### Fan-out failure trade-off
+The 24 extra fetches init-05 adds (4 FIN stats REST + 2 rookie + ~18 club-stats fan-out) are
+**each a new way the whole run can fail**: any single failed fetch marks the manifest row with
+an error, which short-circuits the `had_error` check so **neither builder runs** and neither
+page updates. Accepted for now because:
+- The collector retries 3× with exponential backoff on each endpoint (ADR-035).
+- A full-run failure fires the alarm (ADR-032) and yesterday's `bolts.json`/`leijonat.json`
+  stay live (versioning + `max-age=300` cache).
+
+**Revisit** if a single team's club-stats regularly fails a run — a candidate change is to let
+the name fallback cover a missing team's payload instead, but today that risks silent
+wrong-name output on a trade day.
+
+### Traded Finns
+Season totals **across all teams** (opposite of ADR-035's TBL-only stance on `/bolts`). The
+natural reading for a per-player page is "what did this player do this season". `team` field
+is `bios.currentTeamAbbrev`. The multi-team shape of stats REST `teamAbbrevs` (e.g.
+`"A,B"` for a traded player, or multiple rows) is **unknown today** — no FIN mid-season trade
+to confirm. Watch item in TASK.md Known Issues; re-verify at the first FIN trade.
+
+### Preseason-only Finns
+Verified 2026-10-10: bios **without** `gameTypeId` filter returns the same 30 FIN skaters as
+with `gameTypeId=2`. Explicit `gameTypeId=1` returns 0. No URL change needed.
+
+### Reference fixtures
+- **OT**: real captured boxscore `2026020025__2026-10-10.json.gz` (CAR @ PHI, 2026-10-03;
+  `gameOutcome.lastPeriodType == "OT"`).
+- **SO**: real captured boxscore `2026020065__2026-10-10.json.gz` (TOR @ VGK, 2026-10-08;
+  `gameOutcome.lastPeriodType == "SO"`).
+
+No hand-mutated variants for OT/SO.
+
+### Bios pagination
+A duplicate `playerId` across pages raises `BiosDuplicateError` (ADR-011) — no silent dedupe.
+
+### References
+init-05-leijonat-json.md, prps/prp-05-leijonat-json.md
+
+---
+
 These are not decisions. They give the first fixtures context.
 - Season `20262027` started 2026-10-01.
 - TBL is 0-1-0 after losing 5-1 at NYR, and sits 30th in the league.

@@ -3,10 +3,10 @@
 **Spec numbers:** `01`–`09` are reserved by the backlog below. **The next free number for a new,
 unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029).
 
-## Current: Phase 2 Data
+## Current: Phase 2 → Phase 3 handover
 
 ### In Progress
-- [ ] `init-05-leijonat-json` — executing PRP-05
+*(none)*
 
 ### Up Next
 - [ ] `init-06-shared-ui` — i18n, formatters, base CSS, disclaimer, stale banner (Phase 3)
@@ -14,6 +14,15 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ---
 
 ## Recently Completed
+
+### init-05-leijonat-json (2026-10-10)
+- [x] 4 FIN stats REST endpoints + 2 isRookie filter fetches + 18-team club-stats fan-out for
+      Finnish `fi` names. New `parse/bios.py` and `parse/boxscore.py`. `build_leijonat.py`
+      composes 30 Finn skaters + 5 goalies + lastNight join + teams block. Handler extracted
+      into `build_phase.py` for two-independent-builder control flow. Live spot-check: Määttä
+      and Teräväinen carry `fi` keys; Granlund + Kakko in lastNight; 4 FIN rookies flagged
+      authoritatively via `isRookie=1`. Lambda duration 20.2s / 180s timeout; 39 raw / 0
+      errors / `built: ["bolts", "leijonat"]`. ADR-037 added (PRP-05)
 
 ### init-04-bolts-json (2026-10-09)
 - [x] 4 new endpoints (summary/realtime/faceoff/team-summary) + 4 parsers + build phase +
@@ -110,6 +119,12 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
   elsewhere earlier in the season, while club-stats columns are TBL-only. No mid-season trade
   has occurred yet to confirm; **re-verify at the first TBL trade** and, if confirmed, either
   switch to club-stats fallbacks for those fields or document the asymmetry on the page.
+- **FIN traded players (ADR-037)**: `teamAbbrevs` in nationality-filtered stats REST may become
+  multi-team (e.g. `"A,B"`) for a Finn who played for more than one team this season — or the
+  endpoint may return one row per team instead. No mid-season FIN trade yet to confirm the
+  shape. The builder uses `bios.currentTeamAbbrev` as the authoritative `team` field, so the
+  current output is stable, but **re-verify at the first FIN mid-season trade** and update
+  ADR-037 with the observed shape (summing per-team rows, or passing through, or similar).
 
 ## Notes
 
@@ -119,7 +134,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-10 (init-05 in progress)*
+*Last updated: 2026-10-10 (init-04 + init-05 complete; next: init-06)*
 
 ---
 
