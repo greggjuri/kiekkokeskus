@@ -17,11 +17,17 @@ from kiekkokeskus.nhl import (
     url_club_schedule_season,
     url_club_stats,
     url_goalie_bios,
+    url_goalie_rookies_nationality,
+    url_goalie_summary_nationality,
     url_schedule,
     url_skater_bios,
     url_skater_faceoff,
+    url_skater_faceoff_nationality,
     url_skater_realtime,
+    url_skater_realtime_nationality,
+    url_skater_rookies_nationality,
     url_skater_summary,
+    url_skater_summary_nationality,
     url_standings,
     url_team_summary,
 )
@@ -69,6 +75,12 @@ def test_url_builders_use_dated_values_and_no_now() -> None:
         url_skater_realtime("20262027"),
         url_skater_faceoff("20262027"),
         url_team_summary("20262027"),
+        url_skater_summary_nationality("20262027"),
+        url_skater_realtime_nationality("20262027"),
+        url_skater_faceoff_nationality("20262027"),
+        url_goalie_summary_nationality("20262027"),
+        url_skater_rookies_nationality("20262027"),
+        url_goalie_rookies_nationality("20262027"),
     ]
     for u in urls:
         # path segment check (not just substring): "/now" and "now/" shouldn't appear
@@ -107,6 +119,34 @@ def test_team_summary_url_is_league_wide() -> None:
     assert "gameTypeId%3D2" in u
     assert "seasonId%3D20262027" in u
     assert "teamAbbrevs" not in u, "team summary must not filter by team"
+
+
+def test_fin_nationality_filtered_urls() -> None:
+    """ADR-037: FIN nationality filter on stats REST endpoints."""
+    builders = [
+        (url_skater_summary_nationality, "/skater/summary?"),
+        (url_skater_realtime_nationality, "/skater/realtime?"),
+        (url_skater_faceoff_nationality, "/skater/faceoffpercentages?"),
+        (url_goalie_summary_nationality, "/goalie/summary?"),
+    ]
+    for fn, path in builders:
+        u = fn("20262027")
+        assert path in u
+        assert "cayenneExp=" in u
+        assert "gameTypeId%3D2" in u
+        assert "nationalityCode%3D%22FIN%22" in u
+        assert "seasonId%3D20262027" in u
+        assert "teamAbbrevs" not in u, "nationality filter must not also filter by team"
+        assert "isRookie" not in u
+
+
+def test_rookie_filter_urls_add_isRookie() -> None:
+    for fn in (url_skater_rookies_nationality, url_goalie_rookies_nationality):
+        u = fn("20262027")
+        assert "cayenneExp=" in u
+        assert "isRookie%3D1" in u
+        assert "nationalityCode%3D%22FIN%22" in u
+        assert "gameTypeId%3D2" in u
 
 
 # --- Fetch -------------------------------------------------------------------

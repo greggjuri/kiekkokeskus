@@ -286,10 +286,12 @@ def handler(
             fetch_fn=fetch_fn,
         )
 
-    # Step 5: bios paginated
-    for family, url_fn in (
-        ("skater-bios-FIN", nhl.url_skater_bios),
-        ("goalie-bios-FIN", nhl.url_goalie_bios),
+    # Step 5: bios paginated. Collect pages into bodies for init-05 build.
+    bodies["bios-skater"] = []
+    bodies["bios-goalie"] = []
+    for family, url_fn, bucket in (
+        ("skater-bios-FIN", nhl.url_skater_bios, "bios-skater"),
+        ("goalie-bios-FIN", nhl.url_goalie_bios, "bios-goalie"),
     ):
         start = 0
         page = 0
@@ -305,6 +307,7 @@ def handler(
             )
             if payload is None:
                 break
+            bodies[bucket].append(payload)
             n = len(payload.get("data", []))
             total = payload.get("total", 0)
             if n == 0 or start + n >= total:
@@ -347,6 +350,46 @@ def handler(
     if ts_payload is not None:
         bodies["team-summary"] = ts_payload
         _check_stats_rest(ts_payload, ts_slug, manifest.requests)
+
+    # Step 7: FIN nationality-filtered stats REST (ADR-037). Four 1-page fetches, guarded.
+    for bucket, slug_prefix, url_fn in (
+        ("summary-FIN", "skater-summary-FIN", nhl.url_skater_summary_nationality),
+        ("realtime-FIN", "skater-realtime-FIN", nhl.url_skater_realtime_nationality),
+        ("faceoff-FIN", "skater-faceoff-FIN", nhl.url_skater_faceoff_nationality),
+        ("goalie-summary-FIN", "goalie-summary-FIN", nhl.url_goalie_summary_nationality),
+    ):
+        slug = f"{slug_prefix}__{season}"
+        payload = _fetch_and_archive(
+            put=put,
+            now=now,
+            run_date=run_date,
+            slug=slug,
+            url=url_fn(season),
+            requests=manifest.requests,
+            fetch_fn=fetch_fn,
+        )
+        if payload is not None:
+            bodies[bucket] = payload
+            _check_stats_rest(payload, slug, manifest.requests)
+
+    # Step 8: FIN rookie flag via isRookie=1 filter (ADR-037). Two 1-page fetches.
+    for bucket, slug_prefix, url_fn in (
+        ("rookies-FIN", "skater-rookies-FIN", nhl.url_skater_rookies_nationality),
+        ("goalie-rookies-FIN", "goalie-rookies-FIN", nhl.url_goalie_rookies_nationality),
+    ):
+        slug = f"{slug_prefix}__{season}"
+        payload = _fetch_and_archive(
+            put=put,
+            now=now,
+            run_date=run_date,
+            slug=slug,
+            url=url_fn(season),
+            requests=manifest.requests,
+            fetch_fn=fetch_fn,
+        )
+        if payload is not None:
+            bodies[bucket] = payload
+            _check_stats_rest(payload, slug, manifest.requests)
 
     # Fail loudly if any request errored
     had_error = any(req.error for req in manifest.requests)

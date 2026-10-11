@@ -153,6 +153,67 @@ def url_team_summary(season: str, *, start: int = 0, limit: int = 1000) -> str:
     return _assert_no_now(f"{_STATS}/team/summary?{qs}")
 
 
+def _stats_rest_nationality_url(
+    path: str,
+    season: str,
+    nationality: str,
+    start: int,
+    limit: int,
+    is_rookie: bool = False,
+) -> str:
+    """Stats REST nationality-filtered URL (ADR-037). `is_rookie=True` adds `and isRookie=1`."""
+    from urllib.parse import urlencode
+
+    expr = f'gameTypeId=2 and nationalityCode="{nationality}" and seasonId={season}'
+    if is_rookie:
+        expr += " and isRookie=1"
+    qs = urlencode({"cayenneExp": expr, "limit": str(limit), "start": str(start)})
+    return _assert_no_now(f"{_STATS}/{path}?{qs}")
+
+
+def url_skater_summary_nationality(
+    season: str, nationality: str = "FIN", *, start: int = 0, limit: int = 1000
+) -> str:  # noqa: E501
+    return _stats_rest_nationality_url("skater/summary", season, nationality, start, limit)
+
+
+def url_skater_realtime_nationality(
+    season: str, nationality: str = "FIN", *, start: int = 0, limit: int = 1000
+) -> str:  # noqa: E501
+    return _stats_rest_nationality_url("skater/realtime", season, nationality, start, limit)
+
+
+def url_skater_faceoff_nationality(
+    season: str, nationality: str = "FIN", *, start: int = 0, limit: int = 1000
+) -> str:  # noqa: E501
+    return _stats_rest_nationality_url(
+        "skater/faceoffpercentages", season, nationality, start, limit
+    )
+
+
+def url_goalie_summary_nationality(
+    season: str, nationality: str = "FIN", *, start: int = 0, limit: int = 1000
+) -> str:  # noqa: E501
+    return _stats_rest_nationality_url("goalie/summary", season, nationality, start, limit)
+
+
+def url_skater_rookies_nationality(
+    season: str, nationality: str = "FIN", *, limit: int = 1000
+) -> str:  # noqa: E501
+    """ADR-037: `isRookie=1` cayenneExp filter — returns rookie-only rows."""
+    return _stats_rest_nationality_url(
+        "skater/summary", season, nationality, 0, limit, is_rookie=True
+    )
+
+
+def url_goalie_rookies_nationality(
+    season: str, nationality: str = "FIN", *, limit: int = 1000
+) -> str:  # noqa: E501
+    return _stats_rest_nationality_url(
+        "goalie/summary", season, nationality, 0, limit, is_rookie=True
+    )
+
+
 # --- Fetch -------------------------------------------------------------------
 
 Opener = Callable[[urllib.request.Request, float], Any]
