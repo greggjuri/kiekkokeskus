@@ -52,6 +52,8 @@ def cdk_deploy() -> None:
 
 SHARED_SYNC_DEST = "s3://jurigregg-static-site/kiekkokeskus/"
 SHARED_SYNC_SOURCE = "site/kiekkokeskus/"
+BOLTS_SYNC_DEST = "s3://jurigregg-static-site/bolts/"
+BOLTS_SYNC_SOURCE = "site/bolts/"
 
 
 def _shared_sync_cmd() -> list[str]:
@@ -75,19 +77,47 @@ def _shared_sync_cmd() -> list[str]:
     ]
 
 
+def _bolts_sync_cmd() -> list[str]:
+    # --exclude "*.test.js" is mandatory: site/bolts/view.test.js lives next to the real page
+    # modules, and without the exclude it would ship to prod alongside main.js.
+    return [
+        "aws",
+        "s3",
+        "sync",
+        BOLTS_SYNC_SOURCE,
+        BOLTS_SYNC_DEST,
+        "--delete",
+        "--exclude",
+        "*.test.js",
+        "--cache-control",
+        "public, max-age=300",
+        "--profile",
+        "default",
+    ]
+
+
 def page_sync() -> None:
-    """Sync shared page assets to the kiekkokeskus/ prefix (ADR-024, ADR-039).
+    """Sync shared page assets then the /bolts page assets (ADR-024, ADR-039).
 
-    --delete is scoped to the kiekkokeskus/ prefix (allowed by ADR-024). Tests, _dev/, and the
-    optional package.json marker are excluded. Cache-Control is set per-object so a deploy is
-    visible within ~5 min (the distribution's legacy default is 1 h, see ADR-022 verified note).
+    Order matters: the shared prefix must land first so that /bolts never references a module
+    (page.js, controller.js, view.js's imports) that isn't on S3 yet. --delete is scoped per
+    prefix. Cache-Control is set per-object so a deploy is visible within ~5 min (the
+    distribution's legacy default is 1 h, see ADR-022 verified note).
 
-    bolts/ and leijonat/ syncs stay unwired until init-07 / init-08.
+    Pre-deploy workflow (do before the first real bolts sync — see PRP-07 Step 9):
+      - aws s3 ls s3://jurigregg-static-site/bolts/ --recursive --profile default
+      - aws s3 sync site/bolts/ s3://jurigregg-static-site/bolts/ --delete \
+            --exclude "*.test.js" --dryrun --profile default
+      Any delete: line or a count other than 4 uploads should stop the deploy.
+
+    leijonat/ sync stays unwired until init-08.
     """
     _check_allowed(SHARED_SYNC_DEST)
     # env=_subprocess_env() keeps AWS_PROFILE=default and the Node 22 PATH prefix in sync with
     # cdk_diff / cdk_deploy.
     subprocess.run(_shared_sync_cmd(), cwd=REPO_ROOT, env=_subprocess_env(), check=True)
+    _check_allowed(BOLTS_SYNC_DEST)
+    subprocess.run(_bolts_sync_cmd(), cwd=REPO_ROOT, env=_subprocess_env(), check=True)
 
 
 def _check_allowed(dest: str) -> None:

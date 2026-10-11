@@ -65,13 +65,13 @@ def test_shared_sync_cmd_pins_every_argument():
 
 
 def test_page_sync_runs_shared_cmd_with_env(monkeypatch, tmp_path):
-    captured: dict[str, object] = {}
+    # Post-init-07, page_sync fires TWO subprocess calls (shared then bolts). This test still
+    # pins the shared call's shape + env; the ordering + bolts call are covered in
+    # test_deploy_bolts.py::test_page_sync_runs_shared_first_then_bolts.
+    captured: list[dict] = []
 
     def fake_run(cmd, cwd=None, env=None, check=False):
-        captured["cmd"] = cmd
-        captured["cwd"] = cwd
-        captured["env"] = env
-        captured["check"] = check
+        captured.append({"cmd": cmd, "cwd": cwd, "env": env, "check": check})
         return subprocess.CompletedProcess(args=cmd, returncode=0)
 
     monkeypatch.setattr(deploy.subprocess, "run", fake_run)
@@ -81,12 +81,13 @@ def test_page_sync_runs_shared_cmd_with_env(monkeypatch, tmp_path):
 
     deploy.page_sync()
 
-    assert captured["check"] is True
-    assert captured["cmd"] == deploy._shared_sync_cmd()
-    assert captured["cwd"] == deploy.REPO_ROOT
+    shared = captured[0]
+    assert shared["check"] is True
+    assert shared["cmd"] == deploy._shared_sync_cmd()
+    assert shared["cwd"] == deploy.REPO_ROOT
 
     # env matches _subprocess_env(): AWS_PROFILE=default and the (patched) Node bin on PATH.
-    env = captured["env"]
+    env = shared["env"]
     assert isinstance(env, dict)
     assert env.get("AWS_PROFILE") == "default"
     assert str(tmp_path) in env.get("PATH", "")
