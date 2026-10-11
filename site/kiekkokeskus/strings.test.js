@@ -36,3 +36,41 @@ test("EN disclaimer matches README.md verbatim (ADR-002)", () => {
     "Kiekkokeskus is a personal, non-commercial project. It is not affiliated with, endorsed by, or sponsored by the National Hockey League, the Tampa Bay Lightning, or any NHL team. Team and league names are trademarks of their respective owners. Data comes from publicly accessible NHL endpoints.";
   assert.equal(STRINGS.en["footer.disclaimer"], expected);
 });
+
+// --- init-07 pins ---
+
+test("FI division names pinned (liiga.fi + Finnish NHL coverage)", () => {
+  assert.equal(STRINGS.fi["div.A"], "Atlantin divisioona");
+  assert.equal(STRINGS.fi["div.M"], "Metropolitanin divisioona");
+  assert.equal(STRINGS.fi["div.C"], "Keskinen divisioona");
+  assert.equal(STRINGS.fi["div.P"], "Tyynenmeren divisioona");
+});
+
+test("FI conference names pinned", () => {
+  assert.equal(STRINGS.fi["conf.E"], "Itä");
+  assert.equal(STRINGS.fi["conf.W"], "Länsi");
+});
+
+test("FI streak suffixes pinned (Liiga glossary)", () => {
+  assert.equal(STRINGS.fi["streak.W"], "V{n}");
+  assert.equal(STRINGS.fi["streak.L"], "H{n}");
+  assert.equal(STRINGS.fi["streak.OT"], "JH{n}");
+});
+
+test("FI decided suffixes pinned (Liiga glossary)", () => {
+  assert.equal(STRINGS.fi["decided.OT"], "JA");
+  assert.equal(STRINGS.fi["decided.SO"], "VL");
+});
+
+test("page.bolts.subtitle contains the {season} placeholder in both langs", () => {
+  assert.ok(STRINGS.en["page.bolts.subtitle"].includes("{season}"));
+  assert.ok(STRINGS.fi["page.bolts.subtitle"].includes("{season}"));
+});
+
+test("page.bolts.subtitleNoSeason contains NO placeholder (shown during load / on error)", () => {
+  for (const lang of SUPPORTED_LANGS) {
+    const s = STRINGS[lang]["page.bolts.subtitleNoSeason"];
+    assert.ok(!s.includes("{"), `${lang} subtitleNoSeason leaks a placeholder: ${s}`);
+    assert.ok(!s.includes("}"), `${lang} subtitleNoSeason leaks a placeholder: ${s}`);
+  }
+});
