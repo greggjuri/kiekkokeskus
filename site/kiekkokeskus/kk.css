@@ -54,12 +54,16 @@ main {
   display: grid;
   /* Title column shrinks below min-content (minmax 0,1fr); hero cell gets a generous ~45%
      share so the sketch (ADR-040) dominates the right side; toggle sits in the top-right
-     corner above the hero. On mobile the whole template collapses — see below. */
+     corner above the hero. The trailing `1fr` row absorbs any leftover hero height so the
+     subtitle sits directly under the title with the normal 8 px gap instead of being pushed
+     to the bottom of the hero cell. On mobile the whole template collapses — see below. */
   grid-template-columns: minmax(0, 1fr) minmax(260px, 45%) auto;
+  grid-template-rows: auto auto auto 1fr;
   grid-template-areas:
     "crumb    .     toggle"
     "title    hero  toggle"
-    "subtitle hero  .";
+    "subtitle hero  ."
+    ".        hero  .";
   gap: 8px 16px;
   align-items: baseline;
   padding: 16px 0 24px;
