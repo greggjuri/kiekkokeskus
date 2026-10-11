@@ -64,7 +64,7 @@ def test_shared_sync_cmd_pins_every_argument():
 # --- page_sync wires subprocess with env=_subprocess_env() ---
 
 
-def test_page_sync_runs_shared_cmd_with_env(monkeypatch):
+def test_page_sync_runs_shared_cmd_with_env(monkeypatch, tmp_path):
     captured: dict[str, object] = {}
 
     def fake_run(cmd, cwd=None, env=None, check=False):
@@ -75,6 +75,9 @@ def test_page_sync_runs_shared_cmd_with_env(monkeypatch):
         return subprocess.CompletedProcess(args=cmd, returncode=0)
 
     monkeypatch.setattr(deploy.subprocess, "run", fake_run)
+    # _subprocess_env() verifies the Node 22 keg exists — a MacBook-only path. In CI (Linux)
+    # the directory is missing. Point NODE22_BIN at a real dir so the function returns normally.
+    monkeypatch.setattr(deploy, "NODE22_BIN", tmp_path)
 
     deploy.page_sync()
 
@@ -82,11 +85,11 @@ def test_page_sync_runs_shared_cmd_with_env(monkeypatch):
     assert captured["cmd"] == deploy._shared_sync_cmd()
     assert captured["cwd"] == deploy.REPO_ROOT
 
-    # env matches _subprocess_env(): AWS_PROFILE=default and the Node 22 bin on PATH.
+    # env matches _subprocess_env(): AWS_PROFILE=default and the (patched) Node bin on PATH.
     env = captured["env"]
     assert isinstance(env, dict)
     assert env.get("AWS_PROFILE") == "default"
-    assert str(deploy.NODE22_BIN) in env.get("PATH", "")
+    assert str(tmp_path) in env.get("PATH", "")
 
 
 def test_page_sync_refuses_if_check_allowed_rejects(monkeypatch):
