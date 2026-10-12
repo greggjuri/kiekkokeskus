@@ -63,3 +63,4 @@ Real archived NHL payloads live here. **Never hand-write JSON.** Capture with
 | club-stats-SEA__20262027__2__2026-10-10.json.gz | https://api-web.nhle.com/v1/club-stats/SEA/20262027/2 | 2026-10-11T02:43:42Z | 200 | - | ADR-037 |
 | club-stats-VAN__20262027__2__2026-10-10.json.gz | https://api-web.nhle.com/v1/club-stats/VAN/20262027/2 | 2026-10-11T02:43:42Z | 200 | - | ADR-037 |
 | club-stats-WPG__20262027__2__2026-10-10.json.gz | https://api-web.nhle.com/v1/club-stats/WPG/20262027/2 | 2026-10-11T02:43:43Z | 200 | - | ADR-037 |
+| standings__2026-10-10__2026-10-11.json.gz | s3://.../raw/2026-10-11/standings__2026-10-10.json.gz (copied from production raw archive per TESTING.md rule 5; TBL leads Atlantic div seq=1, OTT runner-up seq=2, both 8pts/5gp — ties on points) | 2026-10-11T10:00Z (production run) | 200 | - | ADR-041 |

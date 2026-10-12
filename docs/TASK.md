@@ -1,12 +1,12 @@
 # Kiekkokeskus - Task Tracker
 
 **Spec numbers:** `01`–`09` are reserved by the backlog below. **The next free number for a new,
-unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029).
+unplanned spec is `11`.** Bump it whenever an unplanned spec is created (ADR-029).
 
-## Current: Phase 3
+## Current: Phase 3 → Phase 4
 
 ### In Progress
-*(none)*
+- [ ] `init-10-bolts-runner-up` — add `divisionLead.runnerUp` to `bolts.json`, update `/bolts` tile (PRP-10)
 
 ### Up Next
 - [ ] `init-09-history` (Phase 4)
