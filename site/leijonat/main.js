@@ -21,7 +21,6 @@ const slots = {
   goalies: section.querySelector('[data-slot="goalies"]'),
   footer: section.querySelector('[data-slot="footer"]'),
   tiles: section.querySelector('[data-slot="tiles"]'),
-  definition: section.querySelector('[data-slot="definition"]'),
   lastNight: section.querySelector('[data-slot="lastNight"]'),
   lastNightTitle: section.querySelector('[data-slot="lastNight-title"]'),
   lastNightSub: section.querySelector('[data-slot="lastNight-sub"]'),
@@ -175,7 +174,6 @@ mountPage({
         renderTile(view.tiles.teams),
         renderTile(view.tiles.rookies),
       );
-      slots.definition.textContent = view.definition;
       renderLastNight(slots.lastNight, slots.lastNightTitle, slots.lastNightSub, view.lastNight, lang);
       renderByTeam(slots.byTeam, view.byTeam);
       slots.skaterRookieLegend.hidden = !view.skaterRookieLegend;
@@ -194,7 +192,6 @@ mountPage({
         placeholderTile(t("count.teams", null, lang)),
         placeholderTile(t("count.rookies", null, lang)),
       );
-      slots.definition.textContent = t("leijonat.definition", null, lang);
       slots.lastNightTitle.textContent = t("lastNight.title", null, lang);
       slots.lastNightSub.textContent = "";
       slots.lastNight.innerHTML = "";

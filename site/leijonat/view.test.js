@@ -277,3 +277,10 @@ test("no `{` or `}` placeholder leaks in any rendered view string (both langs)",
     }
   }
 });
+
+test("leijonatView has NO 'definition' field (removed from init-08)", () => {
+  for (const lang of ["en", "fi"]) {
+    const v = leijonatView(GOLDEN, lang);
+    assert.ok(!("definition" in v), `${lang}: view.definition should not exist`);
+  }
+});

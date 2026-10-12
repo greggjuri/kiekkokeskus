@@ -80,8 +80,6 @@ export const STRINGS = {
     "count.goalies": "Goalies",
     "count.teams": "Teams",
     "count.rookies": "Rookies",
-    "leijonat.definition":
-      "A Finn here means Finnish nationality, wherever the player was born. Players appear once they've played a regular-season game this season.",
     "lastNight.title": "Last night",
     "lastNight.games.one": "{n} game",
     "lastNight.games.other": "{n} games",
@@ -170,8 +168,6 @@ export const STRINGS = {
     "count.goalies": "Maalivahdit",
     "count.teams": "Joukkueet",
     "count.rookies": "Tulokkaat",
-    "leijonat.definition":
-      "Suomalaiseksi lasketaan Suomen kansalainen syntymäpaikasta riippumatta. Mukana ovat pelaajat, jotka ovat pelanneet tällä kaudella runkosarjaottelun.",
     "lastNight.title": "Viime yönä",
     "lastNight.games.one": "{n} ottelu",
     "lastNight.games.other": "{n} ottelua",

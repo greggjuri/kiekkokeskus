@@ -126,3 +126,9 @@ test("lastNight.skaterLine and goalieLine templates carry both placeholders in b
     );
   }
 });
+
+test("leijonat.definition is undefined in both langs (removed from init-08)", () => {
+  for (const lang of SUPPORTED_LANGS) {
+    assert.equal(STRINGS[lang]["leijonat.definition"], undefined);
+  }
+});

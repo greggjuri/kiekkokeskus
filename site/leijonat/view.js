@@ -130,7 +130,6 @@ export function leijonatView(data, lang) {
     ),
     hero: { src: "/leijonat/hero.webp", width: 900, height: 604, alt: "" },
     tiles: tilesSection(data, lang),
-    definition: t("leijonat.definition", null, lang),
     lastNight: lastNightSection(data, lang),
     byTeam: byTeamRows(data, lang),
     skaterRookieLegend: hasRookie(data.skaters),
