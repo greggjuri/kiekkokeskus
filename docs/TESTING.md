@@ -210,7 +210,7 @@ After any change to `site/`:
 - [ ] Console has no errors, and the Network tab shows exactly one JSON fetch per page (plus
       history if charts are open)
 - [ ] EN ⇄ FI switches every string, name, and number format, and `<html lang>` updates
-- [ ] Sorting each column works in both directions, and nulls sort last
+- [ ] Click the same column three times: desc → asc → desc, on both tables (nulls sort last). The two-click-only wording let the stale-closure bug (`fix(07) 4c66c00`) through two manual passes
 - [ ] Position filter: All / F / D
 - [ ] Reload with URL params restores the same view; a shared link opens in the same language and
       view

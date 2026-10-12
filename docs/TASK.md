@@ -6,10 +6,10 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 3
 
 ### In Progress
-*(none)*
+- [ ] `init-08-leijonat-page` — /leijonat page, decorateName/rookie marker (PRP-08)
 
 ### Up Next
-- [ ] `init-08-leijonat-page` (Phase 3)
+- [ ] `init-09-history` (Phase 4)
 
 ---
 
