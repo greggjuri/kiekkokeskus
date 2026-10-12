@@ -20,6 +20,9 @@ JS_PATH = "/kiekkokeskus/i18n.js"
 BOLTS_PAGE = "/bolts"
 BOLTS_PAGE_SLASH = "/bolts/"
 BOLTS_HERO = "/bolts/hero.webp"
+LEIJONAT_PAGE = "/leijonat"
+LEIJONAT_PAGE_SLASH = "/leijonat/"
+LEIJONAT_HERO = "/leijonat/hero.webp"
 
 JS_CONTENT_TYPES = ("text/javascript", "application/javascript")
 
@@ -258,6 +261,44 @@ def main() -> int:
         )
     except Exception as e:  # noqa: BLE001
         ok &= _check("hero.webp endpoint", False, repr(e))
+
+    # /leijonat page (both /leijonat and /leijonat/ serve the same HTML via add-index-html,
+    # ADR-021). Body must reference /kiekkokeskus/kk.css (shared stylesheet).
+    for path, label in [(LEIJONAT_PAGE_SLASH, "GET /leijonat/"), (LEIJONAT_PAGE, "GET /leijonat")]:
+        try:
+            status, headers, body = _get(f"{BASE}{path}")
+            ok &= _check(label, status == 200, f"status={status}")
+            ctype = headers.get("content-type", "")
+            ok &= _check(
+                f"{label} content-type text/html",
+                _is_html_content_type(ctype),
+                f"content-type={ctype!r}",
+            )
+            ok &= _check(
+                f"{label} body links kk.css",
+                _body_contains(body, "/kiekkokeskus/kk.css"),
+            )
+        except Exception as e:  # noqa: BLE001
+            ok &= _check(f"{label} endpoint", False, repr(e))
+
+    # /leijonat/hero.webp (ADR-040 lion hero, ADR-039 Cache-Control)
+    try:
+        status, headers, _ = _get(f"{BASE}{LEIJONAT_HERO}")
+        ok &= _check("GET leijonat hero.webp 200", status == 200, f"status={status}")
+        cache = headers.get("cache-control", "")
+        ok &= _check(
+            "leijonat hero.webp Cache-Control max-age=300",
+            "max-age=300" in cache,
+            f"cache-control={cache!r}",
+        )
+        ctype = headers.get("content-type", "")
+        ok &= _check(
+            "leijonat hero.webp content-type image/webp",
+            "image/webp" in ctype.lower(),
+            f"content-type={ctype!r}",
+        )
+    except Exception as e:  # noqa: BLE001
+        ok &= _check("leijonat hero.webp endpoint", False, repr(e))
 
     return 0 if ok else 1
 
