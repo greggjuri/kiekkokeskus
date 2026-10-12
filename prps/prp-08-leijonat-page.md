@@ -2,7 +2,7 @@
 
 **Created**: 2026-10-12
 **Initial**: `initials/init-08-leijonat-page.md`
-**Status**: Ready
+**Status**: Complete
 **ADRs relied on**: ADR-002, 003, 010–012, 015–018, 020–022, 024, 028, 030, 034, 037–040
 **New ADRs this PRP adds**: **none** (ADR-040 already covers the lion hero; ADR-037 already
 says the badge comes from `game.result`, never `decision`)

@@ -134,6 +134,28 @@ Each row is at least one test. Add a row when DECISIONS-DATA gains an ADR.
 | 040 | opp.home vs opp.away via `localName` | `home: true/false` with `opponent.name = {default:'Wild'}` | EN `'vs Wild'` / `'at Wild'`; FI `'Wild (koti)'` / `'Wild (vieras)'` |
 | 040 | no placeholder leaks | flatten every string returned by `boltsView(golden, lang)` | none contains `{` or `}` — backstop for the subtitle `{season}` regression |
 
+#### Page logic — init-08 additions
+
+| ADR | Gotcha | Fixture / input | Assert |
+|---|---|---|---|
+| 040 | `nameCellParts` — no decorateName | `nameCellParts(row, lang, null)` | `{ name, suffix: null, title: null }`. DOM renderer leaves the cell as a bare text node → /bolts markup byte-identical (regression lock) |
+| 040 | `nameCellParts` — rookie decoration | `rookie:true` + `decorateName(r,l) => ({suffix:' *', title: l==='fi'?'Tulokas':'Rookie'})` | `{ name, suffix:' *', title:'Rookie'/'Tulokas' }`; non-rookie row returns both null |
+| 040 | name sort ignores marker | rookie Helenius vs. non-rookie Heiskanen, sort by name asc | Heiskanen first (`hei < hel`); the `*` is DOM-only |
+| 040 | stale closure on sort header | 3 clicks on the same column | arrows flip desc→asc→desc (not stuck on first-render state). `headerClickHandler` reads a live store; locked by `table.test.js` |
+| 012 | lastNight: no games (synthetic) | `{ gamesCompleted: 0, skaters:[], goalies:[] }` | `view.lastNight.empty === true`; `message === 'noGames'`; no cards |
+| 012 | lastNight: games, no Finns | `{ gamesCompleted: 5, skaters:[], goalies:[] }` | `empty === true`; `message === 'noFinns'` |
+| 015 | lastNight missing object | `data: { ...golden, lastNight: undefined }` | treated as `gamesCompleted: 0`, `message: 'noGames'` |
+| 015 | lastNight goalie no shots | synthetic goalie card with `saves/sa/svPct` all null | big line `'–/– saves · –'` (EN) / `'–/– torjuntaa · –'` (FI); no throw |
+| 037 | goalie badge from `game.result`, NEVER `decision` | `decision: 'W'`, `game.result: 'L'` | badge `L` (EN) / `H` (FI). View never reads `decision` |
+| 040 | OT loss card in last-night | `game.result: 'OTL'`, `decidedIn: 'OT'` | badge `OTL`/`JH` + suffix `OT`/`JA` |
+| 040 | SO suffix | `decidedIn: 'SO'` | suffix `SO`/`VL` |
+| 018 | FI vs EN name source (table) | Määttä row via `decorateName`-less path | EN cell `Olli Maatta`; FI cell `Olli Määttä` |
+| 040 | by-team sort — total desc, name asc tiebreaker | two teams at same total (LAK + VAN both 3) | LAK before VAN (`localeCompare`) |
+| 040 | by-team Finn-list sort uses DISPLAYED label | FI render + rookie that would sort differently under `fi` vs `default` | labels sorted on the string the user sees (prevents a misorder when EN default and FI translation start with different letters) |
+| 040 | leijonat view has no `definition` field | `leijonatView(golden, lang)` | `'definition' in v === false` in both langs — paragraph dropped mid-init-08 |
+| 028 | `leijonat.definition` key absent | `STRINGS[lang]['leijonat.definition']` | `undefined` in both langs — guard against re-introduction |
+| 040 | no placeholder leaks | flatten every string from `leijonatView(golden, lang)` | none contains `{` or `}` |
+
 ### Date and Time Boundaries
 Logic takes "now" as a parameter and never reads the clock (CLAUDE.md conventions). Test:
 - "Yesterday" in ET when the run time is just after midnight UTC, which is still the previous day

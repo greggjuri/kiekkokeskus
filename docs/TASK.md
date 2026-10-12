@@ -6,7 +6,7 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 3
 
 ### In Progress
-- [ ] `init-08-leijonat-page` — /leijonat page, decorateName/rookie marker (PRP-08)
+*(none)*
 
 ### Up Next
 - [ ] `init-09-history` (Phase 4)
@@ -14,6 +14,25 @@ unplanned spec is `10`.** Bump it whenever an unplanned spec is created (ADR-029
 ---
 
 ## Recently Completed
+
+### init-08-leijonat-page (2026-10-12)
+- [x] `jurigregg.com/leijonat` live. Reused everything init-07 built: `page.js`/`controller.js`,
+      `renderHeader(hero)`, `localName`, `tp`, `kk-page.css`. Only shared addition is a pure
+      `nameCellParts(row, lang, decorateName)` in `table.js` plus `decorateName` forwarding
+      through `mountPage` to both tables — `/bolts` passes nothing, so its markup stays
+      byte-identical (regression-locked). `/leijonat` has the lion hero (ADR-040), four count
+      tiles (Skaters/Goalies/Teams/Rookies), last-night cards (name + rookie `*` + team + big
+      stats line + game result badge), skater and goalie tables **with** team column, rookie
+      marker + per-table legend, by-team compact list. Also: parked `Saldo`→`Tilanne` FI
+      rename on `tile.record` landed in the same deploy. Mid-execution removed the
+      `leijonat.definition` paragraph entirely (both langs; guard tests assert it stays gone).
+      CI gap backfilled: ci.yml now runs all three Node globs (PRP-07's report wrongly claimed
+      it already ran the bolts glob — corrected in `ci(08)` commit body). Live verified
+      against LIVE JSON (not golden — PRP-08 locked that discipline): tiles equal array
+      lengths, 7 last-night cards (data has rotated — 2 skaters + 5 goalies now including a
+      Heiskanen OTL/SO), rookie `*` on Konsta Helenius / Arttu Hyry / Brad Lambert / Ville
+      Ottavainen, by-team 19 rows, fetch-once confirmed. Harness `/leijonat` placeholder
+      section dropped (P1.1). ADR-040 unchanged (PRP-08)
 
 ### init-07-bolts-page (2026-10-11)
 - [x] `jurigregg.com/bolts` live. Shared page controller split cleanly: `controller.js` (pure,
@@ -175,7 +194,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-11 (init-07 complete; next: init-08)*
+*Last updated: 2026-10-12 (init-08 complete; next: init-09)*
 
 ---
 
