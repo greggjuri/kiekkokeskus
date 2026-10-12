@@ -53,6 +53,24 @@ function divisionTile(s, lang) {
 function divisionLeadTile(s, lang) {
   const dl = s.divisionLead;
   const tblLeads = dl.leader === "TBL";
+  const ru = dl.runnerUp;
+
+  // ADR-041: when Tampa leads AND the runnerUp exists AND isn't Tampa itself, show the lead
+  // over second place from Tampa's view. Positive = ahead; 0 when tied on points but first
+  // by tiebreaker.
+  if (tblLeads && ru && ru.team !== "TBL") {
+    const diff = (s.pts ?? 0) - (ru.pts ?? 0);
+    return {
+      label: t("tile.divLeader", null, lang),
+      value: signed(diff, lang),
+      sub:
+        `${ru.team} · ${tp("unit.pts", ru.pts, lang)}` +
+        gihClause(ru.gamesInHand, lang),
+    };
+  }
+
+  // Fallback: Tampa not leading, OR runnerUp missing, OR runnerUp == TBL (Tampa second).
+  // Byte-identical to today's rendering.
   return {
     label: tblLeads ? t("tile.divLeader", null, lang) : t("tile.divLead", null, lang),
     // From Tampa's point of view: positive = ahead, negative = behind. gap is reference −

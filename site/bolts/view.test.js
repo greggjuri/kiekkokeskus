@@ -116,15 +116,111 @@ test("signed gaps from Tampa's view (ADR-036)", () => {
   assert.equal(v.tiles.playoffLine.value, "−2");
 });
 
-test("TBL leads division: value '0', label 'Division leader'", () => {
+test("TBL leads division + runnerUp null (defensive): value '0', fallback to today's render", () => {
+  // Post-init-10, this exercises the fallback branch: TBL leads but no runnerUp field →
+  // tile uses the today-render ("0" + "TBL · {pts}"). This is the "runnerUp null while TBL
+  // leads" gotcha row (ADR-041 defensive case).
   const data = synth({ standing: {
-    divisionLead: { leader: "TBL", leaderPts: 11, gap: 0, gamesInHand: 0 },
+    divisionLead: { leader: "TBL", leaderPts: 11, gap: 0, gamesInHand: 0 },  // no runnerUp
   }});
   const en = boltsView(data, "en");
   assert.equal(en.tiles.divisionLead.value, "0");
   assert.equal(en.tiles.divisionLead.label, "Division leader");
   const fi = boltsView(data, "fi");
   assert.equal(fi.tiles.divisionLead.label, "Divisioonan kärjessä");
+});
+
+// --- ADR-041 (init-10): runnerUp branches ---
+
+test("ADR-041: TBL leads + runnerUp non-TBL → lead over runner-up (EN)", () => {
+  const data = synth({ standing: {
+    pts: 8,
+    divisionLead: {
+      leader: "TBL", leaderPts: 8, gap: 0, gamesInHand: 0,
+      runnerUp: { team: "FLA", pts: 6, gamesInHand: 0 },
+    },
+  }});
+  const v = boltsView(data, "en");
+  assert.equal(v.tiles.divisionLead.label, "Division leader");
+  assert.equal(v.tiles.divisionLead.value, "+2");
+  assert.equal(v.tiles.divisionLead.sub, "FLA · 6 pts");
+});
+
+test("ADR-041: TBL leads + runnerUp non-TBL (FI mirror)", () => {
+  const data = synth({ standing: {
+    pts: 8,
+    divisionLead: {
+      leader: "TBL", leaderPts: 8, gap: 0, gamesInHand: 0,
+      runnerUp: { team: "FLA", pts: 6, gamesInHand: 0 },
+    },
+  }});
+  const v = boltsView(data, "fi");
+  assert.equal(v.tiles.divisionLead.label, "Divisioonan kärjessä");
+  assert.equal(v.tiles.divisionLead.value, "+2");
+  assert.equal(v.tiles.divisionLead.sub, "FLA · 6 p");
+});
+
+test("ADR-041: tied on points, Tampa first by tiebreaker → value '0' (never '-0' or '+0')", () => {
+  const data = synth({ standing: {
+    pts: 8,
+    divisionLead: {
+      leader: "TBL", leaderPts: 8, gap: 0, gamesInHand: 0,
+      runnerUp: { team: "OTT", pts: 8, gamesInHand: 0 },
+    },
+  }});
+  const v = boltsView(data, "en");
+  assert.equal(v.tiles.divisionLead.value, "0");
+  assert.equal(v.tiles.divisionLead.sub, "OTT · 8 pts");
+});
+
+test("ADR-041: runner-up has played fewer games → sub ends '· 1 more game played'", () => {
+  const data = synth({ standing: {
+    pts: 8,
+    divisionLead: {
+      leader: "TBL", leaderPts: 8, gap: 0, gamesInHand: 0,
+      runnerUp: { team: "OTT", pts: 6, gamesInHand: -1 },
+    },
+  }});
+  const v = boltsView(data, "en");
+  assert.equal(v.tiles.divisionLead.sub, "OTT · 6 pts · 1 more game played");
+});
+
+test("ADR-041: runner-up has games in hand → sub ends '· 2 games in hand'", () => {
+  const data = synth({ standing: {
+    pts: 8,
+    divisionLead: {
+      leader: "TBL", leaderPts: 8, gap: 0, gamesInHand: 0,
+      runnerUp: { team: "OTT", pts: 4, gamesInHand: 2 },
+    },
+  }});
+  const v = boltsView(data, "en");
+  assert.equal(v.tiles.divisionLead.sub, "OTT · 4 pts · 2 games in hand");
+});
+
+test("ADR-041: runnerUp == TBL while TBL leads → fallback render (Tampa second)", () => {
+  const data = synth({ standing: {
+    pts: 8,
+    divisionLead: {
+      leader: "TBL", leaderPts: 8, gap: 0, gamesInHand: 0,
+      runnerUp: { team: "TBL", pts: 8, gamesInHand: 0 },
+    },
+  }});
+  const v = boltsView(data, "en");
+  assert.equal(v.tiles.divisionLead.value, "0");
+  assert.equal(v.tiles.divisionLead.sub, "TBL · 8 pts");
+});
+
+test("ADR-041: Tampa not leading (byte-identity with pre-init-10) — runnerUp present but unused", () => {
+  const data = synth({ standing: {
+    divisionLead: {
+      leader: "OTT", leaderPts: 15, gap: 4, gamesInHand: 0,
+      runnerUp: { team: "TBL", pts: 11, gamesInHand: 0 },
+    },
+  }});
+  const v = boltsView(data, "en");
+  assert.equal(v.tiles.divisionLead.label, "To division lead");
+  assert.equal(v.tiles.divisionLead.value, "−4");
+  assert.equal(v.tiles.divisionLead.sub, "OTT · 15 pts");
 });
 
 test("games in hand: positive adds 'in hand', negative adds 'more games played', zero omits", () => {
