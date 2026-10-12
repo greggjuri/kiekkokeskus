@@ -403,6 +403,44 @@ init-05-leijonat-json.md, prps/prp-05-leijonat-json.md
 
 ---
 
+## ADR-041: Division runner-up in `bolts.json`
+
+**Date**: 2026-10-12 · **Status**: Accepted · **extends ADR-036**
+
+### Decision
+- `standing.divisionLead.runnerUp` is the team with `divisionSequence == 2` in Tampa's
+  division. Fields: `team` (abbrev), `pts` (int), `gamesInHand` (`runnerUp.gp − TBL.gp`,
+  signed, same orientation as ADR-036's other `gamesInHand` fields; never `abs()`-ed).
+- Always populated in-season (divisionSequence runs 1..n with no gaps across every captured
+  standings fixture, verified 2026-10-12). When Tampa is at seq=2, `runnerUp.team == 'TBL'`
+  and the page uses that as the signal to fall back to today's rendering.
+- **No `gap` field inside `runnerUp`.** The page computes `standing.pts − runnerUp.pts`
+  itself. This avoids introducing a third sign convention alongside ADR-036's two
+  (`divisionLead.gap = leader − TBL` and `playoffLine.gap` whose sign depends on
+  `inPosition`).
+- Additive field — no `schemaVersion` bump (ADR-035 convention).
+
+### Verified live 2026-10-12
+After the manual invoke, `https://jurigregg.com/data/kiekkokeskus/bolts.json` carries
+`standing.divisionLead.runnerUp: { team: 'OTT', pts: 8, gamesInHand: 0 }`. TBL is tied with
+OTT on points (both 8/5), first by tiebreaker, so the live tile renders value `'0'` + sub
+`'OTT · 8 pts'` (EN) / `'OTT · 8 p'` (FI) — meaningful information instead of the previous
+tautology `'TBL · 8 pts'`.
+
+### Consequences
+**Positive:** the `/bolts` division tile has a meaningful value in every standings state —
+including the common "team leads its division" case that pre-init-10 showed as a tautology.
+**Negative:** none observed. Adding a field doesn't break readers (the only consumer today
+is `/bolts/view.js`, which reads it optionally).
+
+### References
+initials/init-10-bolts-runner-up.md, prps/prp-10-bolts-runner-up.md,
+src/kiekkokeskus/parse/standings.py (`division_runner_up`),
+src/kiekkokeskus/build_bolts.py (`_division_lead`),
+site/bolts/view.js (`divisionLeadTile`), ADR-036
+
+---
+
 These are not decisions. They give the first fixtures context.
 - Season `20262027` started 2026-10-01.
 - TBL is 0-1-0 after losing 5-1 at NYR, and sits 30th in the league.

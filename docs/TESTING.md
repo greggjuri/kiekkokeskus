@@ -156,6 +156,24 @@ Each row is at least one test. Add a row when DECISIONS-DATA gains an ADR.
 | 028 | `leijonat.definition` key absent | `STRINGS[lang]['leijonat.definition']` | `undefined` in both langs — guard against re-introduction |
 | 040 | no placeholder leaks | flatten every string from `leijonatView(golden, lang)` | none contains `{` or `}` |
 
+#### init-10 additions (ADR-041: `divisionLead.runnerUp`)
+
+| ADR | Layer | Gotcha | Input | Assert |
+|---|---|---|---|---|
+| 041 | 1 parser | runner-up when Tampa leads | `standings__2026-10-10__2026-10-11` fixture | `division_runner_up(rows, 'A')['team'] == 'OTT'`, `points == 8`, `gamesPlayed == 5` |
+| 041 | 1 parser | runner-up when Tampa second | golden fixture `standings__2026-10-08__2026-10-09` | `division_runner_up(rows, 'A')['team'] == 'TBL'` (Tampa itself) |
+| 041 | 1 parser | unknown division | synthetic | `division_runner_up(rows, 'X') is None` |
+| 041 | 2 builder | runner-up populated when Tampa leads | new fixture → build | `standing.divisionLead.runnerUp` has `team: 'OTT'`, `pts: 8`, `gamesInHand: 0` |
+| 041 | 2 builder | runner-up populated when Tampa second | golden → build | `runnerUp.team == 'TBL'`, `pts == 6`, `gamesInHand == 0` |
+| 041 | 5 page | lead over runner-up EN | synth TBL leads, `pts: 8`, `runnerUp: {team:'FLA', pts:6, gamesInHand:0}` | value `'+2'`, sub `FLA · 6 pts` |
+| 041 | 5 page | lead over runner-up FI | same, lang=fi | sub `FLA · 6 p` |
+| 041 | 5 page | tied on points, Tampa first by tiebreaker | `runnerUp.pts == standing.pts` | value `'0'` — never `'-0'`, never `'+0'` (reuses init-07's `signed(-0)` guarantee) |
+| 041 | 5 page | runner-up has played fewer games | `runnerUp.gamesInHand: -1` | sub ends `' · 1 more game played'` |
+| 041 | 5 page | runner-up has games in hand | `runnerUp.gamesInHand: 2` | sub ends `' · 2 games in hand'` |
+| 041 | 5 page | runnerUp == TBL while TBL leads | pathological `runnerUp.team == 'TBL'` | fallback render: value `'0'`, sub `TBL · {pts}` (today's output) |
+| 041 | 5 page | runnerUp null while TBL leads | synthetic defensive (no `runnerUp` field) | fallback render identical to above |
+| 041 | 5 page | Tampa not leading (byte-identity) | golden-shape input with `runnerUp: {team:'TBL',...}` | tile value `signed(-gap)`, sub `{leader} · {leaderPts} pts` — byte-identical to pre-init-10 |
+
 ### Date and Time Boundaries
 Logic takes "now" as a parameter and never reads the clock (CLAUDE.md conventions). Test:
 - "Yesterday" in ET when the run time is just after midnight UTC, which is still the previous day

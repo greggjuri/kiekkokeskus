@@ -6,7 +6,7 @@ unplanned spec is `11`.** Bump it whenever an unplanned spec is created (ADR-029
 ## Current: Phase 3 → Phase 4
 
 ### In Progress
-- [ ] `init-10-bolts-runner-up` — add `divisionLead.runnerUp` to `bolts.json`, update `/bolts` tile (PRP-10)
+*(none)*
 
 ### Up Next
 - [ ] `init-09-history` (Phase 4)
@@ -14,6 +14,19 @@ unplanned spec is `11`.** Bump it whenever an unplanned spec is created (ADR-029
 ---
 
 ## Recently Completed
+
+### init-10-bolts-runner-up (2026-10-12)
+- [x] `standing.divisionLead.runnerUp = { team, pts, gamesInHand }` added to `bolts.json`
+      (sourced from `divisionSequence == 2` in TBL's division; additive, no `schemaVersion`
+      bump). Builder helper `standings.division_runner_up` + branch in
+      `_division_lead`; golden diff was clean (only the new key under `standing.divisionLead`).
+      `/bolts` tile now shows **useful info** when Tampa leads: value `signed(TBL.pts −
+      runnerUp.pts)` + sub `{runnerUp.team} · {pts}` + games-in-hand clause. Fallback to
+      today's rendering when Tampa isn't leading or `runnerUp.team == 'TBL'` (page's dumb
+      guard). Deployed via Lambda update + 1 `bolts/view.js` sync; `cdk diff` touched only
+      the Lambda code asset hash. Live-verified: `OTT · 8 pts` on the division-lead tile
+      instead of the tautology `TBL · 8 pts` (TBL and OTT tied at 8/5, TBL first by
+      tiebreaker). ADR-041 added (PRP-10)
 
 ### init-08-leijonat-page (2026-10-12)
 - [x] `jurigregg.com/leijonat` live. Reused everything init-07 built: `page.js`/`controller.js`,
@@ -177,14 +190,6 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
   shape. The builder uses `bios.currentTeamAbbrev` as the authoritative `team` field, so the
   current output is stable, but **re-verify at the first FIN mid-season trade** and update
   ADR-037 with the observed shape (summing per-team rows, or passing through, or similar).
-- **Division-leader tile shows nothing useful when TBL leads** (PRP-07 live finding): the
-  tile currently renders `0` + `TBL · {pts}`, which is a tautology. The useful value when
-  TBL leads is the lead over **second place**. `bolts.json` doesn't carry the runner-up team,
-  so this needs a builder change. Candidate: **init-10 — bolts.json runnerUp**, adding
-  `standing.divisionLead.runnerUp: { team, pts, gamesInHand }` populated from `standings`
-  (the team with `divisionSequence == 2` in TBL's division). Field addition, no shape break,
-  no `schemaVersion` bump. Then the tile shows `signed(TBL.pts − runnerUp.pts)` + `{runnerUp.team}
-  · {runnerUp.pts}` + games-in-hand clause. Until init-10, the tile stays as it is.
 
 ## Notes
 
@@ -194,7 +199,7 @@ Each one is settled in the spec named. When it's settled, record it as an ADR an
 
 ---
 
-*Last updated: 2026-10-12 (init-08 complete; next: init-09)*
+*Last updated: 2026-10-12 (init-10 complete; next: init-09)*
 
 ---
 
