@@ -47,4 +47,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - run: node --test "site/kiekkokeskus/*.test.js"
+      - run: node --test "site/kiekkokeskus/*.test.js" "site/bolts/*.test.js" "site/leijonat/*.test.js"
