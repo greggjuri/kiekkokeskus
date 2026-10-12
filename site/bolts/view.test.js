@@ -14,6 +14,7 @@ const GOLDEN = JSON.parse(fs.readFileSync(GOLDEN_PATH, "utf8"));
 
 test("golden view EN: record / division / division lead / playoff / last game / PP / PK", () => {
   const v = boltsView(GOLDEN, "en");
+  assert.equal(v.tiles.record.label, "Record");
   assert.equal(v.tiles.record.value, "3–1–0");
   assert.equal(v.tiles.record.sub, "6 pts · streak W3");
   assert.equal(v.tiles.division.label, "Atlantic Division");
@@ -37,6 +38,8 @@ test("golden view EN: record / division / division lead / playoff / last game / 
 
 test("golden view FI: same cells, FI formatting", () => {
   const v = boltsView(GOLDEN, "fi");
+  // init-08 renamed FI 'Saldo' → 'Tilanne'.
+  assert.equal(v.tiles.record.label, "Tilanne");
   assert.equal(v.tiles.record.value, "3–1–0");
   assert.equal(v.tiles.record.sub, "6 p · putki V3");
   assert.equal(v.tiles.division.label, "Atlantin divisioona");

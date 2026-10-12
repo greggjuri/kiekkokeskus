@@ -74,3 +74,55 @@ test("page.bolts.subtitleNoSeason contains NO placeholder (shown during load / o
     assert.ok(!s.includes("}"), `${lang} subtitleNoSeason leaks a placeholder: ${s}`);
   }
 });
+
+// --- init-08 pins ---
+
+test("FI tile.record is 'Tilanne' (was 'Saldo'; renamed in init-08)", () => {
+  assert.equal(STRINGS.fi["tile.record"], "Tilanne");
+});
+
+test("FI /leijonat count tiles pinned", () => {
+  assert.equal(STRINGS.fi["count.skaters"], "Kenttäpelaajat");
+  assert.equal(STRINGS.fi["count.goalies"], "Maalivahdit");
+  assert.equal(STRINGS.fi["count.teams"], "Joukkueet");
+  assert.equal(STRINGS.fi["count.rookies"], "Tulokkaat");
+});
+
+test("FI rookie strings pinned (Liiga convention)", () => {
+  assert.equal(STRINGS.fi["rookie.title"], "Tulokas");
+  assert.equal(STRINGS.fi["rookie.legend"], "* Tulokas");
+});
+
+test("FI byTeam title pinned", () => {
+  assert.equal(STRINGS.fi["byTeam.title"], "Joukkueittain");
+});
+
+test("FI lastNight strings pinned", () => {
+  assert.equal(STRINGS.fi["lastNight.title"], "Viime yönä");
+  assert.equal(STRINGS.fi["lastNight.noGames"], "Viime yönä ei pelattu NHL-otteluita.");
+  assert.equal(
+    STRINGS.fi["lastNight.noFinns"],
+    "Ei suomalaisten pisteitä eikä aloituksia viime yönä.",
+  );
+});
+
+test("page.leijonat.subtitle contains {season} placeholder; subtitleNoSeason has NO placeholder", () => {
+  for (const lang of SUPPORTED_LANGS) {
+    assert.ok(STRINGS[lang]["page.leijonat.subtitle"].includes("{season}"));
+    const noSeason = STRINGS[lang]["page.leijonat.subtitleNoSeason"];
+    assert.ok(!noSeason.includes("{"), `${lang} subtitleNoSeason leaks a placeholder`);
+    assert.ok(!noSeason.includes("}"), `${lang} subtitleNoSeason leaks a placeholder`);
+  }
+});
+
+test("lastNight.skaterLine and goalieLine templates carry both placeholders in both langs", () => {
+  for (const lang of SUPPORTED_LANGS) {
+    const sk = STRINGS[lang]["lastNight.skaterLine"];
+    assert.ok(sk.includes("{g}") && sk.includes("{a}"), `${lang} skaterLine missing {g}/{a}`);
+    const go = STRINGS[lang]["lastNight.goalieLine"];
+    assert.ok(
+      go.includes("{saves}") && go.includes("{sa}") && go.includes("{svPct}"),
+      `${lang} goalieLine missing a placeholder`,
+    );
+  }
+});
