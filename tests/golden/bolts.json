@@ -651,7 +651,12 @@
       "gamesInHand": 0,
       "gap": 0,
       "leader": "OTT",
-      "leaderPts": 6
+      "leaderPts": 6,
+      "runnerUp": {
+        "gamesInHand": 0,
+        "pts": 6,
+        "team": "TBL"
+      }
     },
     "ga": 9,
     "gf": 11,

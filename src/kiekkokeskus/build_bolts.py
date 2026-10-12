@@ -30,17 +30,38 @@ def _streak(row: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def _division_lead(rows: list[dict[str, Any]], tbl_row: dict[str, Any]) -> dict[str, Any]:
-    """ADR-036. `gap` is signed; 0 when TBL leads. `gamesInHand` = leader.gp - tbl.gp."""
-    leader = standings.division_leader(rows, tbl_row.get("divisionAbbrev") or "")
+    """ADR-036 (leader + gap) and ADR-041 (runnerUp).
+
+    `gap` is signed; 0 when TBL leads. `gamesInHand` = leader.gp − tbl.gp (signed).
+    `runnerUp` is the team at `divisionSequence == 2` in the same division; always populated
+    in-season. When TBL is second, `runnerUp.team == 'TBL'` and the page falls back to today's
+    rendering. No `gap` field inside `runnerUp` — the page computes `standing.pts − runnerUp.pts`
+    to avoid a third sign convention alongside ADR-036's two.
+    """
+    division = tbl_row.get("divisionAbbrev") or ""
+    leader = standings.division_leader(rows, division)
     leader_pts = (leader.get("points") if leader else None) or 0
     leader_gp = (leader.get("gamesPlayed") if leader else None) or 0
     tbl_pts = tbl_row.get("points") or 0
     tbl_gp = tbl_row.get("gamesPlayed") or 0
+
+    runner_up_row = standings.division_runner_up(rows, division)
+    runner_up: dict[str, Any] | None = None
+    if runner_up_row is not None:
+        ru_pts = runner_up_row.get("points") or 0
+        ru_gp = runner_up_row.get("gamesPlayed") or 0
+        runner_up = {
+            "team": runner_up_row.get("team"),
+            "pts": ru_pts,
+            "gamesInHand": ru_gp - tbl_gp,  # same orientation as ADR-036's gamesInHand
+        }
+
     return {
         "leader": (leader or {}).get("team"),
         "leaderPts": leader_pts,
         "gap": leader_pts - tbl_pts,  # signed; never abs() (ADR-036)
         "gamesInHand": leader_gp - tbl_gp,
+        "runnerUp": runner_up,
     }
 
 

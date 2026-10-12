@@ -170,3 +170,46 @@ def test_goalie_no_shots_variant() -> None:
     g0 = out["goalies"][0]
     assert g0["svPct"] is None
     assert g0["gaa"] is None
+
+
+# --- ADR-041 (init-10): divisionLead.runnerUp -----------------------------------
+
+
+def test_runner_up_populated_when_tbl_second() -> None:
+    """Golden fixture (2026-10-08): TBL at Atlantic seq=2 → runnerUp.team is TBL itself.
+    The page uses that as the signal to fall back to today's rendering (ADR-041)."""
+    out = _call_build()
+    ru = out["standing"]["divisionLead"]["runnerUp"]
+    assert ru is not None
+    assert ru["team"] == "TBL"
+    assert ru["pts"] == 6
+    assert ru["gamesInHand"] == 0
+
+
+def test_runner_up_populated_when_tbl_leads() -> None:
+    """2026-10-10 fixture: TBL at Atlantic seq=1 → runnerUp is OTT (also 8pts/5gp — tied on
+    points, TBL first by tiebreaker). Only the standings payload matters for this assertion;
+    the other sections reuse the 2026-10-09 captures (they don't affect divisionLead)."""
+    out = build(
+        data_date=date(2026, 10, 10),
+        season=SEASON,
+        now_iso="2026-10-11T14:00:00Z",
+        standings_payload=_load("standings__2026-10-10__2026-10-11.json.gz"),
+        # Reuse the golden's other payloads — they aren't tested here, only standings is.
+        club_stats_payload=_load("club-stats-TBL__20262027__2__2026-10-09.json.gz"),
+        club_schedule_payload=_load("club-schedule-season-TBL__20262027__2026-10-09.json.gz"),
+        skater_summary_payload=_load("skater-summary-TBL__20262027__2026-10-09.json.gz"),
+        skater_realtime_payload=_load("skater-realtime-TBL__20262027__2026-10-09.json.gz"),
+        skater_faceoff_payload=_load("skater-faceoff-TBL__20262027__2026-10-09.json.gz"),
+        team_summary_payload=_load("team-summary__20262027__2026-10-09.json.gz"),
+    )
+    dl = out["standing"]["divisionLead"]
+    assert dl["leader"] == "TBL"
+    assert dl["leaderPts"] == 8
+    assert dl["gap"] == 0, "leader−TBL == 0 when TBL leads"
+    ru = dl["runnerUp"]
+    assert ru is not None
+    assert ru["team"] == "OTT"
+    assert ru["pts"] == 8
+    assert isinstance(ru["gamesInHand"], int), "signed int, never abs()-ed"
+    assert ru["gamesInHand"] == 0, "OTT 5gp − TBL 5gp"
