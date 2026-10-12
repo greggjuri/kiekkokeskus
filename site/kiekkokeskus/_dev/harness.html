@@ -39,22 +39,9 @@
         <footer data-slot="footer"></footer>
       </section>
 
-      <section class="harness-page" data-page="leijonat">
-        <div class="harness-tag">/leijonat preview</div>
-        <div data-slot="header"></div>
-        <div data-slot="stale" hidden></div>
-        <div data-slot="error" hidden></div>
-        <div class="kk-card">
-          <h2 data-slot="skaters-title"></h2>
-          <div data-slot="pills"></div>
-          <div class="kk-scroll"><div data-slot="skaters"></div></div>
-        </div>
-        <div class="kk-card">
-          <h2 data-slot="goalies-title"></h2>
-          <div class="kk-scroll"><div data-slot="goalies"></div></div>
-        </div>
-        <footer data-slot="footer"></footer>
-      </section>
+      <!-- The /leijonat preview was dropped in PRP-08 (P1.1): the real page is served by
+           scripts/preview.py --fresh. The /bolts preview above stays as a minimal
+           shared-controller demo. -->
     </main>
 
     <script type="module">
@@ -105,21 +92,9 @@
         },
       });
 
-      mountPage({
-        dataPath: "/data/kiekkokeskus/leijonat.json",
-        expectedSchemaVersion: 1,
-        columns: SKATER_COLUMNS,
-        goalieColumns: GOALIE_COLUMNS,
-        titleKey: null,
-        subtitle: () => "/leijonat preview",
-        hero: null,
-        now: harnessNow(),
-        slots: slotsFor(document.querySelector('[data-page="leijonat"]')),
-        renderSections: ({ lang, slots }) => {
-          slots.skatersTitle.textContent = t("table.skaters", null, lang);
-          slots.goaliesTitle.textContent = t("table.goalies", null, lang);
-        },
-      });
+      // /leijonat preview dropped in PRP-08 (P1.1): the real page lives at site/leijonat/
+      // and is served by `python scripts/preview.py --fresh`. Keep the /bolts preview
+      // above as a shared-controller demo.
     </script>
   </body>
 </html>

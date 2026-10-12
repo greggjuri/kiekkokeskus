@@ -28,6 +28,9 @@ export async function mountPage({
   hero,
   renderSections,
   slots,
+  // Optional: (row, lang) => { suffix, title } | null — forwarded to BOTH tables so a
+  // marker (e.g. rookie '*') appears in skaters and goalies. /bolts doesn't pass this.
+  decorateName,
   // Overrides for the harness / tests
   window: win = typeof window !== "undefined" ? window : undefined,
   document: doc = typeof document !== "undefined" ? document : undefined,
@@ -87,6 +90,7 @@ export async function mountPage({
       lang: state.lang,
       onSortChange: (ns) =>
         controller.dispatch({ type: "setSort", sortKey: ns.sortKey, dir: ns.dir }),
+      decorateName,
     });
     if (data) {
       renderNoMatchIfEmpty({
@@ -113,6 +117,7 @@ export async function mountPage({
       lang: state.lang,
       onSortChange: (ns) =>
         controller.dispatch({ type: "setGsort", sortKey: ns.sortKey, dir: ns.dir }),
+      decorateName,
     });
 
     renderSections?.({ data, lang: state.lang, slots });

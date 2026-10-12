@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>leijonat · kiekkokeskus</title>
+    <link rel="stylesheet" href="/kiekkokeskus/kk.css" />
+    <link rel="stylesheet" href="/kiekkokeskus/kk-page.css" />
+  </head>
+  <body>
+    <main>
+      <div data-slot="header"></div>
+      <div data-slot="stale" hidden></div>
+      <div data-slot="error" hidden></div>
+
+      <section class="kk-tiles" data-slot="tiles"></section>
+      <p class="kk-definition" data-slot="definition"></p>
+
+      <section class="kk-card" data-card="lastNight">
+        <h2 data-slot="lastNight-title"></h2>
+        <p class="kk-ln-sub" data-slot="lastNight-sub"></p>
+        <div data-slot="lastNight"></div>
+      </section>
+
+      <section class="kk-card">
+        <h2 data-slot="skaters-title"></h2>
+        <div data-slot="pills"></div>
+        <div class="kk-scroll"><div data-slot="skaters"></div></div>
+        <p class="kk-rookie-legend" data-slot="skaterRookieLegend" hidden></p>
+      </section>
+
+      <section class="kk-card">
+        <h2 data-slot="goalies-title"></h2>
+        <div class="kk-scroll"><div data-slot="goalies"></div></div>
+        <p class="kk-rookie-legend" data-slot="goalieRookieLegend" hidden></p>
+      </section>
+
+      <section class="kk-card" data-card="byTeam">
+        <h2 data-slot="byTeam-title"></h2>
+        <div data-slot="byTeam"></div>
+      </section>
+
+      <footer data-slot="footer"></footer>
+    </main>
+    <script type="module" src="/leijonat/main.js"></script>
+  </body>
+</html>
