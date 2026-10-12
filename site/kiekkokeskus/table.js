@@ -63,10 +63,27 @@ export function headerClickHandler(getCurrent, col) {
   onSortChange?.(nextSort(state, col));
 }
 
+// Pure. Returns the three parts the DOM renderer places into a name cell:
+//   { name: 'Full Name', suffix: ' *' | null, title: 'Rookie' | null }
+// `decorateName(row, lang)` is optional. When omitted (or when it returns null, or returns
+// an object with falsy suffix), both suffix and title are null and the renderer leaves the
+// name cell as a bare text node — so /bolts markup stays byte-identical to today.
+export function nameCellParts(row, lang, decorateName) {
+  const name = renderName(row, lang);
+  if (!decorateName) return { name, suffix: null, title: null };
+  const deco = decorateName(row, lang);
+  if (!deco || !deco.suffix) return { name, suffix: null, title: null };
+  return { name, suffix: deco.suffix, title: deco.title ?? null };
+}
+
 // renderTable: owns the DOM for one table. Builds <thead> once and swaps <tbody> on re-render.
 // Every call stores the latest { state, onSortChange } on the table element so the header
 // listeners (attached only once) can read them live.
-export function renderTable({ root, columns, rows, state, lang, onSortChange }) {
+//
+// decorateName(row, lang) — optional. When passed and the column format is 'name', the cell
+// decides via nameCellParts() whether to append a marker + sr-only title. Without
+// decorateName (the /bolts case) the name cell is a bare text node, identical to today.
+export function renderTable({ root, columns, rows, state, lang, onSortChange, decorateName }) {
   const doc = root.ownerDocument;
 
   let table = root.querySelector("table.kk-table");
@@ -144,6 +161,30 @@ export function renderTable({ root, columns, rows, state, lang, onSortChange }) 
       const td = doc.createElement("td");
       if (col.format !== "name" && col.format !== "text" && col.format !== "position") {
         td.classList.add("kk-numeric");
+      }
+      // Special-case the name column so decorateName can append a marker + sr-only title
+      // without disturbing /bolts markup when decorateName is absent.
+      if (col.format === "name") {
+        const parts = nameCellParts(row, lang, decorateName);
+        if (parts.suffix) {
+          // Bare text node for the name, then <span class="kk-mark"> + <span class="kk-sr-only">
+          td.appendChild(doc.createTextNode(parts.name));
+          const mark = doc.createElement("span");
+          mark.className = "kk-mark";
+          mark.setAttribute("aria-hidden", "true");
+          mark.textContent = parts.suffix;
+          td.appendChild(mark);
+          if (parts.title) {
+            const sr = doc.createElement("span");
+            sr.className = "kk-sr-only";
+            sr.textContent = parts.title;
+            td.appendChild(sr);
+          }
+        } else {
+          td.textContent = parts.name; // bare text node — /bolts byte-identity
+        }
+        tr.appendChild(td);
+        continue;
       }
       const cell = cellValue(col, row, lang);
       if (cell.isNull) td.classList.add("kk-null");

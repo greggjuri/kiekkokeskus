@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { headerClickHandler } from "./table.js";
+import { headerClickHandler, nameCellParts } from "./table.js";
 import { SKATER_COLUMNS, GOALIE_COLUMNS, findColumn } from "./columns.js";
+import { sortRows } from "./sort.js";
 
 // `headerClickHandler` is the pure part of the header-click path. It reads the current
 // { state, onSortChange } from a store that the DOM-side code updates on every render, so
@@ -92,4 +93,72 @@ test("missing store or onSortChange is a no-op (doesn't throw)", () => {
   headerClickHandler(() => ({ state: { sortKey: "p", dir: "desc" } }), g); // no cb
   // Reaching here means no throw.
   assert.ok(true);
+});
+
+// --- nameCellParts (init-08) ---
+//
+// Pure helper: the DOM renderer consults it to decide what goes in the name cell. When
+// suffix is null the renderer MUST leave the cell as a bare text node, which keeps /bolts
+// markup byte-identical to the pre-init-08 state. These tests cover the decision logic
+// without touching the DOM.
+
+const row = (first, last, extras = {}) => ({
+  firstName: { default: first },
+  lastName: { default: last, ...(extras.lastFi ? { fi: extras.lastFi } : {}) },
+  rookie: extras.rookie ?? false,
+});
+
+test("nameCellParts: no decorateName → both suffix and title are null (/bolts path)", () => {
+  const parts = nameCellParts(row("Olli", "Maatta"), "en", null);
+  assert.deepEqual(parts, { name: "Olli Maatta", suffix: null, title: null });
+});
+
+test("nameCellParts: decorateName returning null → both null", () => {
+  const parts = nameCellParts(row("Olli", "Maatta"), "en", () => null);
+  assert.deepEqual(parts, { name: "Olli Maatta", suffix: null, title: null });
+});
+
+test("nameCellParts: rookie row → suffix + title", () => {
+  const deco = (r, l) => r.rookie
+    ? { suffix: " *", title: l === "fi" ? "Tulokas" : "Rookie" } : null;
+  const parts = nameCellParts(row("Kieran", "Lambert", { rookie: true }), "en", deco);
+  assert.deepEqual(parts, { name: "Kieran Lambert", suffix: " *", title: "Rookie" });
+});
+
+test("nameCellParts: non-rookie row with same decorateName → both null", () => {
+  const deco = (r) => r.rookie ? { suffix: " *", title: "Rookie" } : null;
+  const parts = nameCellParts(row("Sebastian", "Aho"), "en", deco);
+  assert.deepEqual(parts, { name: "Sebastian Aho", suffix: null, title: null });
+});
+
+test("nameCellParts: FI lang threads through to decorateName", () => {
+  const deco = (r, l) => r.rookie
+    ? { suffix: " *", title: l === "fi" ? "Tulokas" : "Rookie" } : null;
+  const parts = nameCellParts(row("Kieran", "Lambert", { rookie: true }), "fi", deco);
+  assert.equal(parts.title, "Tulokas");
+});
+
+test("nameCellParts: FI name rendered via renderName (fi ?? default)", () => {
+  const r = row("Olli", "Maatta", { lastFi: "Määttä" });
+  assert.equal(nameCellParts(r, "en", null).name, "Olli Maatta");
+  assert.equal(nameCellParts(r, "fi", null).name, "Olli Määttä");
+});
+
+test("nameCellParts: decorateName with suffix but no title keeps title null", () => {
+  const parts = nameCellParts(row("A", "B"), "en", () => ({ suffix: " †" }));
+  assert.deepEqual(parts, { name: "A B", suffix: " †", title: null });
+});
+
+test("name sort ignores the rookie marker (sort uses the raw name)", () => {
+  // Helenius (rookie) should sort BEFORE Heiskanen (non-rookie)? No: alphabetical sort by
+  // last name puts Heiskanen before Helenius (hei < hel). The '*' marker is DOM-only and
+  // never affects comparison.
+  const rows = [
+    row("Kari", "Helenius", { rookie: true }),
+    row("Miro", "Heiskanen"),
+  ];
+  const nameCol = findColumn(SKATER_COLUMNS, "name");
+  const asc = sortRows(rows, nameCol, { dir: "asc", lang: "en" });
+  assert.equal(asc[0].lastName.default, "Heiskanen");
+  assert.equal(asc[1].lastName.default, "Helenius");
 });
