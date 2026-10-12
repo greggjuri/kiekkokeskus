@@ -179,3 +179,33 @@ def test_playoff_line_gap_sign_preserved_at_zero_and_negative() -> None:
     pl_b = standings.playoff_line(rows_b, "TBL")
     assert pl_b["inPosition"] is False
     assert pl_b["gap"] == -3, "ref.points - team.points = 7 - 10 = -3 (never abs()-ed)"
+
+
+# --- ADR-041 (init-10): division_runner_up -------------------------------------
+
+
+def test_division_runner_up_when_tbl_leads() -> None:
+    """2026-10-10 standings has TBL at Atlantic seq=1; runner-up (seq=2) is OTT."""
+    payload = _load("standings__2026-10-10__2026-10-11.json.gz")
+    rows = standings.rows(payload)
+    ru = standings.division_runner_up(rows, "A")
+    assert ru is not None
+    assert ru["team"] == "OTT"
+    assert ru["points"] == 8
+    assert ru["gamesPlayed"] == 5
+
+
+def test_division_runner_up_when_tbl_is_second() -> None:
+    """Golden fixture (2026-10-08) has TBL at Atlantic seq=2; runner-up IS TBL itself.
+    The page uses that as the signal to render the fallback branch (ADR-041)."""
+    payload = _load("standings__2026-10-08__2026-10-09.json.gz")
+    rows = standings.rows(payload)
+    ru = standings.division_runner_up(rows, "A")
+    assert ru is not None
+    assert ru["team"] == "TBL"
+
+
+def test_division_runner_up_unknown_division_returns_none() -> None:
+    payload = _load("standings__2026-10-08__2026-10-09.json.gz")
+    rows = standings.rows(payload)
+    assert standings.division_runner_up(rows, "X") is None

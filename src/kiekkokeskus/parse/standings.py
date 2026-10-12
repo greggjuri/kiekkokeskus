@@ -68,6 +68,18 @@ def division_leader(rs: list[dict[str, Any]], division: str) -> dict[str, Any] |
     return None
 
 
+def division_runner_up(rs: list[dict[str, Any]], division: str) -> dict[str, Any] | None:
+    """Team with `divisionSequence == 2` in the given division (ADR-041).
+
+    Returns None only if no such row exists. In-season this is always populated — all four
+    divisions have unique 1..n sequences in every captured standings fixture.
+    """
+    for r in rs:
+        if r.get("divisionAbbrev") == division and r.get("divisionSequence") == 2:
+            return r
+    return None
+
+
 def playoff_line(rs: list[dict[str, Any]], team: str) -> dict[str, Any] | None:
     """Playoff-line reference for `team` (ADR-036).
 
