@@ -54,6 +54,8 @@ SHARED_SYNC_DEST = "s3://jurigregg-static-site/kiekkokeskus/"
 SHARED_SYNC_SOURCE = "site/kiekkokeskus/"
 BOLTS_SYNC_DEST = "s3://jurigregg-static-site/bolts/"
 BOLTS_SYNC_SOURCE = "site/bolts/"
+LEIJONAT_SYNC_DEST = "s3://jurigregg-static-site/leijonat/"
+LEIJONAT_SYNC_SOURCE = "site/leijonat/"
 
 
 def _shared_sync_cmd() -> list[str]:
@@ -96,21 +98,40 @@ def _bolts_sync_cmd() -> list[str]:
     ]
 
 
-def page_sync() -> None:
-    """Sync shared page assets then the /bolts page assets (ADR-024, ADR-039).
+def _leijonat_sync_cmd() -> list[str]:
+    # --exclude "*.test.js" is mandatory for the same reason bolts has it: site/leijonat/
+    # view.test.js lives next to the real page modules and must not deploy.
+    return [
+        "aws",
+        "s3",
+        "sync",
+        LEIJONAT_SYNC_SOURCE,
+        LEIJONAT_SYNC_DEST,
+        "--delete",
+        "--exclude",
+        "*.test.js",
+        "--cache-control",
+        "public, max-age=300",
+        "--profile",
+        "default",
+    ]
 
-    Order matters: the shared prefix must land first so that /bolts never references a module
-    (page.js, controller.js, view.js's imports) that isn't on S3 yet. --delete is scoped per
+
+def page_sync() -> None:
+    """Sync shared → bolts → leijonat (ADR-024, ADR-039).
+
+    Order matters: the shared prefix must land first so that /bolts and /leijonat never
+    reference a module (page.js, controller.js, view.js's imports) that isn't on S3 yet.
+    Leijonat lands after bolts for the same reason — nothing on /bolts depends on /leijonat,
+    but keeping a consistent order keeps the deploy script simple. --delete is scoped per
     prefix. Cache-Control is set per-object so a deploy is visible within ~5 min (the
     distribution's legacy default is 1 h, see ADR-022 verified note).
 
-    Pre-deploy workflow (do before the first real bolts sync — see PRP-07 Step 9):
-      - aws s3 ls s3://jurigregg-static-site/bolts/ --recursive --profile default
-      - aws s3 sync site/bolts/ s3://jurigregg-static-site/bolts/ --delete \
+    Pre-deploy workflow (do before the first real leijonat sync — PRP-08 Step 7):
+      - aws s3 ls s3://jurigregg-static-site/leijonat/ --recursive --profile default
+      - aws s3 sync site/leijonat/ s3://jurigregg-static-site/leijonat/ --delete \
             --exclude "*.test.js" --dryrun --profile default
       Any delete: line or a count other than 4 uploads should stop the deploy.
-
-    leijonat/ sync stays unwired until init-08.
     """
     _check_allowed(SHARED_SYNC_DEST)
     # env=_subprocess_env() keeps AWS_PROFILE=default and the Node 22 PATH prefix in sync with
@@ -118,6 +139,8 @@ def page_sync() -> None:
     subprocess.run(_shared_sync_cmd(), cwd=REPO_ROOT, env=_subprocess_env(), check=True)
     _check_allowed(BOLTS_SYNC_DEST)
     subprocess.run(_bolts_sync_cmd(), cwd=REPO_ROOT, env=_subprocess_env(), check=True)
+    _check_allowed(LEIJONAT_SYNC_DEST)
+    subprocess.run(_leijonat_sync_cmd(), cwd=REPO_ROOT, env=_subprocess_env(), check=True)
 
 
 def _check_allowed(dest: str) -> None:

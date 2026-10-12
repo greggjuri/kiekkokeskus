@@ -57,13 +57,15 @@ def test_page_sync_runs_shared_first_then_bolts(monkeypatch, tmp_path):
 
     deploy.page_sync()
 
-    # Two subprocess calls, in order
-    assert len(captured) == 2, f"expected 2 subprocess calls, got {len(captured)}"
+    # Post-init-08, page_sync fires 3 calls (shared → bolts → leijonat). This test still
+    # pins the shared and bolts calls' order and shape; the full 3-call ordering is
+    # covered in test_deploy_leijonat.py::test_page_sync_runs_three_calls_in_order.
+    assert len(captured) >= 2
     assert captured[0]["cmd"] == deploy._shared_sync_cmd(), "first call must be the shared sync"
     assert captured[1]["cmd"] == deploy._bolts_sync_cmd(), "second call must be the bolts sync"
 
-    # Both carry env=_subprocess_env() — AWS_PROFILE + Node 22 PATH prefix
-    for call in captured:
+    # Shared + bolts both carry env=_subprocess_env() — AWS_PROFILE + Node 22 PATH prefix
+    for call in captured[:2]:
         assert call["check"] is True
         assert call["cwd"] == deploy.REPO_ROOT
         env = call["env"]
